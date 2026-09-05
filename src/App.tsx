@@ -13,6 +13,8 @@ export default function App() {
   const [sunElev, setSunElev] = useState(2);
   const [sunAz, setSunAz] = useState(90);
   const [aerosol, setAerosol] = useState(1);
+  const [dustOn, setDustOn] = useState(true);
+  const [cloudsOn, setCloudsOn] = useState(true);
   const [absorption, setAbsorption] = useState(true);
   const [eye, setEye] = useState(true);
   const [exposure, setExposure] = useState(1);
@@ -21,17 +23,23 @@ export default function App() {
   const [worldsOpen, setWorldsOpen] = useState(true);
   const [teleOpen, setTeleOpen] = useState(true);
 
+  // Cloud-deck master switch: clearing it reveals the clear-sky column beneath.
+  const effWorld = useMemo(
+    () => (cloudsOn ? world : { ...world, cloudAlbedo: 0 }),
+    [world, cloudsOn],
+  );
+
   const sky = useMemo(
     () =>
-      computeSky(world, {
+      computeSky(effWorld, {
         sunElevDeg: sunElev,
         sunAzDeg: sunAz,
-        aerosolScale: aerosol,
+        aerosolScale: dustOn ? aerosol : 0,
         absorptionOn: absorption,
         eyeAdapted: eye,
         exposure,
       }),
-    [world, sunElev, sunAz, aerosol, absorption, eye, exposure],
+    [effWorld, sunElev, sunAz, aerosol, dustOn, absorption, eye, exposure],
   );
 
   // Sunrise (+1) / sunset (-1) animation at 1.5°/s.
@@ -70,7 +78,7 @@ export default function App() {
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-black text-neutral-200">
-      <SkyView world={world} sky={sky} view={view} onViewChange={setView} />
+      <SkyView world={effWorld} sky={sky} view={view} onViewChange={setView} />
       {view.fisheye && <FisheyeMask />}
 
       {/* top bar */}
@@ -117,15 +125,19 @@ export default function App() {
       {/* right: display + telemetry */}
       <div className="absolute right-3 top-36 hidden sm:block">
         <DisplayPanel
-          world={world}
+          world={effWorld}
           sky={sky}
           aerosol={aerosol}
+          dustOn={dustOn}
+          cloudsOn={cloudsOn}
           absorption={absorption}
           eye={eye}
           exposure={exposure}
           fisheye={view.fisheye}
           teleOpen={teleOpen}
           onAerosol={setAerosol}
+          onDust={setDustOn}
+          onClouds={setCloudsOn}
           onAbsorption={setAbsorption}
           onEye={setEye}
           onExposure={setExposure}

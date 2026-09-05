@@ -186,12 +186,16 @@ export function DisplayPanel(props: {
   world: WorldSpec;
   sky: SkyState;
   aerosol: number;
+  dustOn: boolean;
+  cloudsOn: boolean;
   absorption: boolean;
   eye: boolean;
   exposure: number;
   fisheye: boolean;
   teleOpen: boolean;
   onAerosol: (v: number) => void;
+  onDust: (v: boolean) => void;
+  onClouds: (v: boolean) => void;
   onAbsorption: (v: boolean) => void;
   onEye: (v: boolean) => void;
   onExposure: (v: number) => void;
@@ -218,15 +222,19 @@ export function DisplayPanel(props: {
         </button>
       </div>
       <Slider label="Exposure" value={props.exposure} min={0.1} max={4} step={0.05} display={`${props.exposure.toFixed(2)}×`} onChange={props.onExposure} />
-      <Slider
-        label="Aerosol density"
-        value={props.aerosol}
-        min={0}
-        max={4}
-        step={0.05}
-        display={`${props.aerosol.toFixed(2)}×`}
-        onChange={props.onAerosol}
-      />
+      <Toggle label="Dust aerosols (Mie)" checked={props.dustOn} onChange={props.onDust} />
+      <div className={props.dustOn ? undefined : 'pointer-events-none opacity-40'}>
+        <Slider
+          label="Aerosol density"
+          value={props.aerosol}
+          min={0}
+          max={4}
+          step={0.05}
+          display={props.dustOn ? `${props.aerosol.toFixed(2)}×` : 'off'}
+          onChange={props.onAerosol}
+        />
+      </div>
+      <Toggle label="Cloud deck (overcast)" checked={props.cloudsOn} onChange={props.onClouds} />
       <p className="mb-1 truncate text-[11px] text-neutral-500" title={w.aerosol.name}>
         {w.aerosol.name} · g={w.aerosol.g.toFixed(2)}
       </p>

@@ -123,10 +123,14 @@ void main() {
 
   vec3 sky = single * 1.6 + multi;
 
+  // No air, no glow: forward-scattered terms fade out with the scatterers,
+  // so airless worlds show only the bare sun disc (no corona/haze).
+  float airGlow = 1.0 - exp(-(uTauR.g + uTauM.g) * 8.0);
+
   // ---- forward-scattered horizon band near the sun ----
   float horizonBand = pow(clamp(1.0 - abs(y) * 3.0, 0.0, 1.0), 2.0);
   float sunward = pow(clamp(cosT * 0.5 + 0.5, 0.0, 1.0), 6.0);
-  sky += uFlux * uSunTint * horizonBand * sunward * 0.35 * (uTauM.g * 2.0 + 0.12);
+  sky += uFlux * uSunTint * horizonBand * sunward * 0.35 * (uTauM.g * 2.0 + 0.12) * airGlow;
 
   // ---- overcast: mix toward uniform cloud-deck gloom ----
   vec3 gloomTint = mix(vec3(0.62, 0.57, 0.52), uMieTint, 0.65) * scatterTint;
@@ -145,7 +149,7 @@ void main() {
   sky += sunCol * disc * 25.0 * max(sunFlux, 0.03) * sunUp;
   float glowT = clamp(cosT, 0.0, 1.0);
   sky += sunCol * (pow(glowT, 800.0) * 3.0 + pow(glowT, 24.0) * 0.22)
-    * (0.35 + uTauM.g * 3.0) * min(sunFlux, 3.0) * (1.0 - uNight);
+    * (0.35 + uTauM.g * 3.0) * min(sunFlux, 3.0) * (1.0 - uNight) * airGlow;
 
   // ---- night: fade sky, reveal stars ----
   sky *= 1.0 - uNight * 0.985;
