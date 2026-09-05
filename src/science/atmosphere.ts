@@ -172,7 +172,9 @@ export function computeSky(world: WorldSpec, opts: SkyOptions): SkyState {
   const fluxRel = fluxWm2 / 1361;
 
   const mSun = airMass(Math.max(opts.sunElevDeg, 1));
-  const twilightDim = opts.sunElevDeg >= 0 ? 1 : Math.pow(10, opts.sunElevDeg / 6);
+  // Twilight falloff: once the sun drops past the horizon, the whole sky
+  // (beam and diffuse alike) fades fast — ~40 lux at -6°, starlight by -12°.
+  const twilightDim = Math.exp(-Math.max(-opts.sunElevDeg, 0) / 0.8);
   const tDir = Math.exp(-tauT.g * mSun);
   const tDiff = Math.exp(-tauT.g * 1.8);
   // Deep-diffusion: multiple scattering still delivers light to the surface
