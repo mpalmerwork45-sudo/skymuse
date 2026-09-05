@@ -5,7 +5,7 @@
  * shader (see skyShader.ts) renders sky + terrain in one pass so the horizon
  * stays a crisp anti-aliased edge. Rings and moons are companion meshes.
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import type { WorldSpec } from '../science/worlds';
 import { airMass, type SkyState } from '../science/atmosphere';
@@ -38,11 +38,19 @@ export default function SkyView({ world, sky, view, onViewChange }: SkyViewProps
   const live = useRef({ world, sky, view, onViewChange });
   live.current = { world, sky, view, onViewChange };
 
+  const [glError, setGlError] = useState<string | null>(null);
+
   useEffect(() => {
     const mount = mountRef.current;
     if (!mount) return;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+    } catch (err) {
+      setGlError(err instanceof Error ? err.message : 'WebGL unavailable');
+      return;
+    }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     mount.appendChild(renderer.domElement);
@@ -190,6 +198,8 @@ export default function SkyView({ world, sky, view, onViewChange }: SkyViewProps
       uniforms.uTauA.value.set(s.tauA.r, s.tauA.g, s.tauA.b);
       const mSun = airMass(Math.max(s.sunElevDeg, 1));
       uniforms.uTauSun.value.set(s.tauT.r * mSun, s.tauT.g * mSun, s.tauT.b * mSun);
+      uniforms.uSunPath.value = mSun;
+      uniforms.uDiffuseLight.value = s.diffuseLight;
       uniforms.uFlux.value = s.fluxRel;
       uniforms.uDownwell.value = s.downwell;
       uniforms.uExposure.value = s.exposureFinal;
@@ -238,5 +248,13 @@ export default function SkyView({ world, sky, view, onViewChange }: SkyViewProps
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return <div ref={mountRef} className="absolute inset-0" />;
+  return (
+    <div ref={mountRef} className="absolute inset-0">
+      {glError && (
+        <div className="flex h-full items-center justify-center p-8 text-center text-sm text-red-300">
+          <p>3D sky failed to start (WebGL error): {glError}</p>
+        </div>
+      )}
+    </div>
+  );
 }

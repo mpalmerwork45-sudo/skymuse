@@ -44,6 +44,8 @@ uniform float uSunAngRad;
 uniform float uNight;
 uniform float uTime;
 uniform float uDiffuseHorizon;
+uniform float uSunPath;
+uniform float uDiffuseLight;
 uniform vec3 uStarColor;
 uniform vec3 uSunTint;
 uniform vec3 uMieTint;
@@ -102,13 +104,22 @@ void main() {
   vec3 scatterCoeff = uTauR * PR + uTauM * uMieAlbedo * uMieTint * PM * 3.0;
   vec3 single = uFlux * uStarColor * scatterCoeff * Tview * Tsun;
 
+  // ---- sun-angle reddening: a low sun feeds the diffuse field through a
+  // long path that has already lost its blue, so skylight warms toward
+  // orange/red at sunset (and stays neutral at noon). ----
+  float pathRed = 1.0 - exp(-max(uSunPath - 1.0, 0.0) * 0.15);
+  // Small floor: keeps a tint direction when the beam is nearly extinguished
+  // without washing it back to white.
+  vec3 beamTint = (Tsun + vec3(0.003)) / max((Tsun.r + Tsun.g + Tsun.b) / 3.0 + 0.003, 1e-3);
+  vec3 scatterTint = mix(vec3(1.0), beamTint, pathRed);
+
   // ---- multi-scattering equilibrium fill: whole-dome diffuse light ----
   vec3 tauScat = uTauR + uTauM * uMieAlbedo;
   vec3 S = tauScat / (1.0 + 0.55 * tauScat);
   vec3 Tesc = exp(-tauT * 0.9);
   float domeShape = 0.45 + 0.55 * pow(clamp(y * 0.5 + 0.5, 0.0, 1.0), 0.6);
   vec3 multi = uFlux * uStarColor * S * Tesc * domeShape * 1.6
-    * (1.0 - uCloudAlbedo * 0.55);
+    * (1.0 - uCloudAlbedo * 0.55) * uDiffuseLight * scatterTint;
 
   vec3 sky = single * 1.6 + multi;
 
@@ -118,7 +129,7 @@ void main() {
   sky += uFlux * uSunTint * horizonBand * sunward * 0.35 * (uTauM.g * 2.0 + 0.12);
 
   // ---- overcast: mix toward uniform cloud-deck gloom ----
-  vec3 gloomTint = mix(vec3(0.62, 0.57, 0.52), uMieTint, 0.65);
+  vec3 gloomTint = mix(vec3(0.62, 0.57, 0.52), uMieTint, 0.65) * scatterTint;
   vec3 gloom = uStarColor * gloomTint * uDownwell * 0.9 * max(domeShape, 0.65);
   sky = mix(sky, gloom, uCloudAlbedo * 0.85);
 
@@ -150,9 +161,10 @@ void main() {
   float n = fbm(gp * 0.08);
   float n2 = vnoise(gp * 0.6);
   vec3 alb = uGroundColor * (0.82 + 0.30 * n) * (0.92 + 0.16 * n2);
-  float sunUp = max(uSunDir.y, 0.0);
-  vec3 amb = uFlux * uGroundSkyTint * (S * Tesc * 0.9 + 0.02) * (1.0 - uCloudAlbedo * 0.4);
-  vec3 beam = uFlux * sunCol * Tsun * sunUp;
+  float sunElev = max(uSunDir.y, 0.0);
+  vec3 amb = uFlux * uGroundSkyTint * (S * Tesc * 0.9 + 0.02)
+    * (1.0 - uCloudAlbedo * 0.4) * uDiffuseLight * scatterTint;
+  vec3 beam = uFlux * sunCol * Tsun * sunElev;
   vec3 ground = alb * (amb + beam * 1.4);
   ground *= 1.0 - uNight * 0.97;
   ground += alb * 0.004;
@@ -167,8 +179,13 @@ void main() {
   ground = mix(ground, sky * (0.55 + 0.45 * domeShape), uDiffuseHorizon * smoothstep(-0.3, 0.0, y) * 0.7);
   vec3 col = mix(ground, sky, skyM);
 
-  col = aces(col * uExposure * DISPLAY);
-  col = pow(max(col, 0.0), vec3(1.0 / 2.2));
+  // Chromaticity-preserving tone map: compress luminance, keep hue. Per-channel
+  // ACES would crush sunset chroma toward white wherever the adapted exposure
+  // pushes highlights into the shoulder.
+  vec3 hdr = col * uExposure * DISPLAY;
+  float lum = dot(hdr, vec3(0.2126, 0.7152, 0.0722));
+  float nlum = aces(vec3(lum)).r / max(lum, 1e-4);
+  col = pow(max(hdr * nlum, 0.0), vec3(1.0 / 2.2));
   gl_FragColor = vec4(col, 1.0);
 }
 `;
@@ -190,6 +207,8 @@ export interface SkyUniforms {
   uNight: { value: number };
   uTime: { value: number };
   uDiffuseHorizon: { value: number };
+  uSunPath: { value: number };
+  uDiffuseLight: { value: number };
   uStarColor: { value: THREE.Color };
   uSunTint: { value: THREE.Color };
   uMieTint: { value: THREE.Color };
@@ -215,6 +234,8 @@ export function createSkyMaterial(): { material: THREE.ShaderMaterial; uniforms:
     uNight: { value: 0 },
     uTime: { value: 0 },
     uDiffuseHorizon: { value: 0 },
+    uSunPath: { value: 1 },
+    uDiffuseLight: { value: 1 },
     uStarColor: { value: new THREE.Color(1, 1, 1) },
     uSunTint: { value: new THREE.Color(1, 1, 1) },
     uMieTint: { value: new THREE.Color(1, 1, 1) },
