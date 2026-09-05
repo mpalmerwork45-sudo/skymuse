@@ -107,7 +107,9 @@ void main() {
   // ---- sun-angle reddening: a low sun feeds the diffuse field through a
   // long path that has already lost its blue, so skylight warms toward
   // orange/red at sunset (and stays neutral at noon). ----
-  float pathRed = 1.0 - exp(-max(uSunPath - 1.0, 0.0) * 0.15);
+  // Under overcast the diffuse field is already well-mixed, so directional
+  // reddening is tempered (Venus sunsets dim to amber-brown, never crimson).
+  float pathRed = (1.0 - exp(-max(uSunPath - 1.0, 0.0) * 0.15)) * (1.0 - uCloudAlbedo * 0.5);
   // Small floor: keeps a tint direction when the beam is nearly extinguished
   // without washing it back to white.
   vec3 beamTint = (Tsun + vec3(0.003)) / max((Tsun.r + Tsun.g + Tsun.b) / 3.0 + 0.003, 1e-3);
@@ -127,10 +129,18 @@ void main() {
   // so airless worlds show only the bare sun disc (no corona/haze).
   float airGlow = 1.0 - exp(-(uTauR.g + uTauM.g) * 8.0);
 
+  // Forward glow represents scattering distributed along the path, so it sees
+  // roughly a quarter-path beam (high-altitude light), not the TOA flux at a
+  // saturated tint: dims and warms correctly as the beam dies. Overcast decks
+  // wash out directional glow.
+  vec3 pathGlow = exp(-tauT * min(uSunPath, 30.0) * 0.25);
+  float cloudGlow = exp(-uCloudAlbedo * 2.0);
+
   // ---- forward-scattered horizon band near the sun ----
   float horizonBand = pow(clamp(1.0 - abs(y) * 3.0, 0.0, 1.0), 2.0);
   float sunward = pow(clamp(cosT * 0.5 + 0.5, 0.0, 1.0), 6.0);
-  sky += uFlux * uSunTint * horizonBand * sunward * 0.35 * (uTauM.g * 2.0 + 0.12) * airGlow;
+  sky += uFlux * uSunTint * horizonBand * sunward * 0.35 * (uTauM.g * 2.0 + 0.12)
+    * airGlow * pathGlow * cloudGlow;
 
   // ---- overcast: mix toward uniform cloud-deck gloom ----
   vec3 gloomTint = mix(vec3(0.62, 0.57, 0.52), uMieTint, 0.65) * scatterTint;
@@ -145,11 +155,16 @@ void main() {
   vec3 sunCol = uSunTint * uStarColor;
   // Disc fades as the sun sinks past the horizon; below-horizon pixels are
   // covered by the ground branch via the horizon mask below.
+  // beamDim kills the disc when the beam itself is extinguished (methane
+  // sunsets, dust storms) and cloudDim hides it under overcast decks: no
+  // visible sun from the Venusian surface, as Venera found.
   float sunUp = smoothstep(-uSunAngRad - 0.004, 0.002, uSunDir.y);
-  sky += sunCol * disc * 25.0 * max(sunFlux, 0.03) * sunUp;
+  float beamDim = clamp(max(Tsun.r, max(Tsun.g, Tsun.b)) * 30.0, 0.0, 1.0);
+  float cloudDim = exp(-uCloudAlbedo * 3.0);
+  sky += sunCol * disc * 25.0 * max(sunFlux, 0.03) * sunUp * beamDim * cloudDim;
   float glowT = clamp(cosT, 0.0, 1.0);
   sky += sunCol * (pow(glowT, 800.0) * 3.0 + pow(glowT, 24.0) * 0.22)
-    * (0.35 + uTauM.g * 3.0) * min(sunFlux, 3.0) * (1.0 - uNight) * airGlow;
+    * (0.35 + uTauM.g * 3.0) * min(sunFlux, 3.0) * (1.0 - uNight) * airGlow * pathGlow * cloudGlow;
 
   // ---- night: fade sky, reveal stars ----
   sky *= 1.0 - uNight * 0.985;
