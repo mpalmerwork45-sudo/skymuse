@@ -55,6 +55,12 @@ export interface SkyState extends SkyOptions {
   fluxRel: number;
   /** Approx horizontal illuminance in lux (direct + diffuse, twilight-aware). */
   lux: number;
+  /**
+   * Diffuse downwelling flux at the surface, relative to Earth's solar
+   * constant. Eddington-style: direct beam plus a diffusion term that keeps
+   * carrying light down through optically thick atmospheres (Venus gloom).
+   */
+  downwell: number;
   /** Retinal adaptation gain applied when eyeAdapted (1 for fixed camera). */
   adaptGain: number;
   /** Final exposure = user exposure x adaptation gain. */
@@ -169,8 +175,16 @@ export function computeSky(world: WorldSpec, opts: SkyOptions): SkyState {
   const twilightDim = opts.sunElevDeg >= 0 ? 1 : Math.pow(10, opts.sunElevDeg / 6);
   const tDir = Math.exp(-tauT.g * mSun);
   const tDiff = Math.exp(-tauT.g * 1.8);
+  // Deep-diffusion: multiple scattering still delivers light to the surface
+  // of optically thick atmospheres long after the direct beam is gone.
+  const deep = (1 - world.cloudAlbedo) / (1 + tauT.g * 0.4);
   // Global horizontal illuminance: direct beam + diffuse skylight, twilight-aware.
-  const lux = Math.max(133000 * fluxRel * (0.65 * tDir + 0.55 * tDiff) * twilightDim, 1e-4);
+  const lux = Math.max(133000 * fluxRel * (0.6 * tDir + 0.35 * tDiff + 0.3 * deep) * twilightDim, 1e-4);
+  // Diffuse downwelling flux (relative): direct beam + Eddington diffusion.
+  const downwell = Math.max(
+    fluxRel * (0.55 * tDir + (0.45 * (1 - world.cloudAlbedo)) / (1 + 0.6 * tauT.g)) * twilightDim,
+    1e-6,
+  );
 
   // Human photopic adaptation: logarithmic gain across ~20..100000 lux.
   const adaptGain = opts.eyeAdapted
@@ -207,7 +221,7 @@ export function computeSky(world: WorldSpec, opts: SkyOptions): SkyState {
     ...opts,
     tauR, tauM, tauA, tauT,
     columnFactor: columnFactor(world),
-    fluxWm2, fluxRel, lux, adaptGain, exposureFinal,
+    fluxWm2, fluxRel, lux, downwell, adaptGain, exposureFinal,
     groundSkyTint, sunTint, starColor, starAngularDeg, nightFactor,
     saturation550: saturation(tauT.g),
   };
