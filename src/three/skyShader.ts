@@ -1,5 +1,5 @@
 /**
- * Full-dome radiative-transfer skydome shader.
+ * Full-dome, three-channel scattering approximation.
  *
  * One inverted sphere handles both sky (dir.y > 0) and terrain (dir.y < 0),
  * so the horizon is a single crisp fwidth anti-aliased edge rather than two
@@ -14,6 +14,8 @@
  * - ACES filmic tone mapping + gamma in-shader.
  */
 import * as THREE from 'three';
+import type { SkyState } from '../science/atmosphere';
+import type { WorldSpec } from '../science/worlds';
 
 export const SKY_VERT = /* glsl */ `
 varying vec3 vWorld;
@@ -37,7 +39,7 @@ uniform vec3 uTauSun;
 uniform float uFlux;
 uniform float uDownwell;
 uniform float uExposure;
-uniform float uMieG;
+uniform vec3 uMieG;
 uniform float uMieAlbedo;
 uniform float uCloudAlbedo;
 uniform float uSunAngRad;
@@ -46,11 +48,11 @@ uniform float uTime;
 uniform float uDiffuseHorizon;
 uniform float uSunPath;
 uniform float uDiffuseLight;
+uniform float uTwilight;
 uniform vec3 uStarColor;
-uniform vec3 uSunTint;
+uniform vec3 uSunBeam;
 uniform vec3 uMieTint;
 uniform vec3 uGroundColor;
-uniform vec3 uGroundSkyTint;
 
 // Display gain mapping physical radiance to tone-mapper input.
 const float DISPLAY = 8.0;
@@ -75,7 +77,19 @@ float fbm(vec2 p) {
 }
 float hgPhase(float c, float g) {
   float g2 = g * g;
-  return (1.0 - g2) / pow(max(1.0 + g2 - 2.0 * g * c, 1e-4), 1.5) * 0.07957747;
+  // Mean-one convention, matching Rayleigh below (both integrate to 4*pi).
+  return (1.0 - g2) / pow(max(1.0 + g2 - 2.0 * g * c, 1e-4), 1.5);
+}
+// Integrated single scattering through a uniform optical-depth slab.
+// Stable also when sun and view paths coincide or extinction tends to zero.
+vec3 scatterPath(vec3 tau, float viewPath, float sunPath) {
+  vec3 a = tau * viewPath;
+  vec3 b = tau * sunPath;
+  vec3 delta = abs(a - b);
+  vec3 small = 1.0 - delta * 0.5 + delta * delta / 6.0;
+  vec3 ratio = mix((1.0 - exp(-delta)) / max(delta, vec3(1e-6)), small,
+    lessThan(delta, vec3(0.001)));
+  return viewPath * exp(-min(a, b)) * ratio;
 }
 vec3 aces(vec3 x) {
   const float a = 2.51;
@@ -95,14 +109,13 @@ void main() {
   // ---- view-path optical depth (limb-brightened at horizon) ----
   float m = 1.0 / (max(y, 0.0) * 0.85 + 0.15);
   m *= 1.0 + 1.5 * pow(clamp(1.0 - max(y, 0.0), 0.0, 1.0), 8.0);
-  vec3 Tview = exp(-tauT * m);
   vec3 Tsun = exp(-uTauSun);
 
   // ---- single scattering (view x sun path transmittance) ----
   float PR = 0.75 * (1.0 + cosT * cosT);
-  float PM = hgPhase(cosT, uMieG);
-  vec3 scatterCoeff = uTauR * PR + uTauM * uMieAlbedo * uMieTint * PM * 3.0;
-  vec3 single = uFlux * uStarColor * scatterCoeff * Tview * Tsun;
+  vec3 PM = vec3(hgPhase(cosT, uMieG.r), hgPhase(cosT, uMieG.g), hgPhase(cosT, uMieG.b));
+  vec3 scatterCoeff = uTauR * PR + uTauM * uMieAlbedo * uMieTint * PM;
+  vec3 single = uFlux * uStarColor * scatterCoeff * scatterPath(tauT, m, uSunPath);
 
   // ---- sun-angle reddening: a low sun feeds the diffuse field through a
   // long path that has already lost its blue, so skylight warms toward
@@ -110,24 +123,27 @@ void main() {
   // Under overcast the diffuse field is already well-mixed, so directional
   // reddening is tempered (Venus sunsets dim to amber-brown, never crimson).
   float pathRed = (1.0 - exp(-max(uSunPath - 1.0, 0.0) * 0.15)) * (1.0 - uCloudAlbedo * 0.5);
+  // Strongest toward the sunlit horizon; a red beam does not turn the entire
+  // hemisphere red. Higher, shorter view paths retain a cooler diffuse sky.
+  pathRed *= exp(-max(y, 0.0) * 4.0) * (0.3 + 0.7 * pow(clamp(cosT * 0.5 + 0.5, 0.0, 1.0), 2.0));
   // Small floor: keeps a tint direction when the beam is nearly extinguished
   // without washing it back to white.
   vec3 beamTint = (Tsun + vec3(0.003)) / max((Tsun.r + Tsun.g + Tsun.b) / 3.0 + 0.003, 1e-3);
   vec3 scatterTint = mix(vec3(1.0), beamTint, pathRed);
 
   // ---- multi-scattering equilibrium fill: whole-dome diffuse light ----
-  vec3 tauScat = uTauR + uTauM * uMieAlbedo;
+  vec3 tauScat = uTauR + uTauM * uMieAlbedo * uMieTint;
   vec3 S = tauScat / (1.0 + 0.55 * tauScat);
   vec3 Tesc = exp(-tauT * 0.9);
   float domeShape = 0.45 + 0.55 * pow(clamp(y * 0.5 + 0.5, 0.0, 1.0), 0.6);
   vec3 multi = uFlux * uStarColor * S * Tesc * domeShape * 1.6
     * (1.0 - uCloudAlbedo * 0.55) * uDiffuseLight * scatterTint;
 
-  vec3 sky = single * 1.6 + multi;
+  vec3 sky = single * 0.2 + multi;
 
   // No air, no glow: forward-scattered terms fade out with the scatterers,
   // so airless worlds show only the bare sun disc (no corona/haze).
-  float airGlow = 1.0 - exp(-(uTauR.g + uTauM.g) * 8.0);
+  float airGlow = 1.0 - exp(-tauScat.g * 8.0);
 
   // Forward glow represents scattering distributed along the path, so it sees
   // roughly a quarter-path beam (high-altitude light), not the TOA flux at a
@@ -139,11 +155,15 @@ void main() {
   // ---- forward-scattered horizon band near the sun ----
   float horizonBand = pow(clamp(1.0 - abs(y) * 3.0, 0.0, 1.0), 2.0);
   float sunward = pow(clamp(cosT * 0.5 + 0.5, 0.0, 1.0), 6.0);
-  sky += uFlux * uSunTint * horizonBand * sunward * 0.35 * (uTauM.g * 2.0 + 0.12)
+  vec3 forwardTint = scatterCoeff / max(max(scatterCoeff.r, scatterCoeff.g), max(scatterCoeff.b, 1e-6));
+  sky += uFlux * uStarColor * forwardTint * horizonBand * sunward * 0.35 * (tauScat.g * 2.0 + 0.12)
     * airGlow * pathGlow * cloudGlow;
 
   // ---- overcast: mix toward uniform cloud-deck gloom ----
   vec3 gloomTint = mix(vec3(0.62, 0.57, 0.52), uMieTint, 0.65) * scatterTint;
+  // uDownwell already includes twilight; apply it to the other solar terms
+  // here, once, before mixing in this cloud contribution.
+  sky *= uTwilight;
   vec3 gloom = uStarColor * gloomTint * uDownwell * 0.9 * max(domeShape, 0.65);
   sky = mix(sky, gloom, uCloudAlbedo * 0.85);
 
@@ -152,27 +172,21 @@ void main() {
   float ang = acos(clamp(cosT, -1.0, 1.0));
   float aa = fwidth(ang) + 1e-4;
   float disc = 1.0 - smoothstep(uSunAngRad - aa, uSunAngRad + aa, ang);
-  vec3 sunCol = uSunTint * uStarColor;
-  // Disc fades as the sun sinks past the horizon; below-horizon pixels are
-  // covered by the ground branch via the horizon mask below.
-  // beamDim kills the disc when the beam itself is extinguished (methane
-  // sunsets, dust storms) and cloudDim hides it under overcast decks: no
-  // visible sun from the Venusian surface, as Venera found.
-  float sunUp = smoothstep(-uSunAngRad - 0.004, 0.002, uSunDir.y);
-  float beamDim = clamp(max(Tsun.r, max(Tsun.g, Tsun.b)) * 30.0, 0.0, 1.0);
+  // Direct-beam extinction and cloud attenuation hide an obscured disc.
   float cloudDim = exp(-uCloudAlbedo * 3.0);
-  sky += sunCol * disc * 25.0 * max(sunFlux, 0.03) * sunUp * beamDim * cloudDim;
+  // The horizon mask clips the actual disc; do not fade the entire disc just
+  // because its centre crosses the horizon, or normalize away extinction.
+  sky += uSunBeam * disc * 750.0 * sunFlux * cloudDim;
   float glowT = clamp(cosT, 0.0, 1.0);
-  sky += sunCol * (pow(glowT, 800.0) * 3.0 + pow(glowT, 24.0) * 0.22)
-    * (0.35 + uTauM.g * 3.0) * min(sunFlux, 3.0) * (1.0 - uNight) * airGlow * pathGlow * cloudGlow;
+  sky += uStarColor * forwardTint * (pow(glowT, 800.0) * 3.0 + pow(glowT, 24.0) * 0.22)
+    * (0.35 + tauScat.g * 3.0) * min(sunFlux, 3.0) * uTwilight * airGlow * pathGlow * cloudGlow;
 
   // ---- night: fade sky, reveal stars ----
-  sky *= 1.0 - uNight * 0.985;
   vec3 cell = floor(dir * 220.0);
   float h = hash13(cell);
   float star = smoothstep(0.994, 1.0, h);
   float tw = 0.6 + 0.4 * sin(uTime * 3.0 + h * 40.0);
-  sky += vec3(0.9, 0.95, 1.0) * star * tw * uNight * (1.0 - uCloudAlbedo) * 2.0;
+  sky += vec3(0.9, 0.95, 1.0) * star * tw * uNight * (1.0 - uCloudAlbedo) * 0.002;
 
   // ---- terrain / cloud deck below the horizon ----
   float tHit = -uCamPos.y / min(y, -1e-4);
@@ -181,12 +195,12 @@ void main() {
   float n2 = vnoise(gp * 0.6);
   vec3 alb = uGroundColor * (0.82 + 0.30 * n) * (0.92 + 0.16 * n2);
   float sunElev = max(uSunDir.y, 0.0);
-  vec3 amb = uFlux * uGroundSkyTint * (S * Tesc * 0.9 + 0.02)
-    * (1.0 - uCloudAlbedo * 0.4) * uDiffuseLight * scatterTint;
-  vec3 beam = uFlux * sunCol * Tsun * sunElev;
+  vec3 amb = uFlux * uStarColor * S * Tesc * 0.9
+    * (1.0 - uCloudAlbedo * 0.4) * uDiffuseLight * uTwilight * scatterTint;
+  amb = mix(amb, uStarColor * gloomTint * uDownwell, uCloudAlbedo * 0.85);
+  vec3 beam = uFlux * uSunBeam * sunElev * cloudDim;
   vec3 ground = alb * (amb + beam * 1.4);
-  ground *= 1.0 - uNight * 0.97;
-  ground += alb * 0.004;
+  ground += alb * 0.000004 * uNight;
 
   // ---- crisp (or diffuse) horizon demarcation ----
   float edgeAA = fwidth(y) * 1.5 + 1e-4;
@@ -204,7 +218,12 @@ void main() {
   vec3 hdr = col * uExposure * DISPLAY;
   float lum = dot(hdr, vec3(0.2126, 0.7152, 0.0722));
   float nlum = aces(vec3(lum)).r / max(lum, 1e-4);
-  col = pow(max(hdr * nlum, 0.0), vec3(1.0 / 2.2));
+  col = max(hdr * nlum, 0.0);
+  // Fit highlights into the display gamut without clipping channels
+  // independently (which changes hue), then encode linear RGB to sRGB once.
+  col /= max(1.0, max(col.r, max(col.g, col.b)));
+  col = mix(1.055 * pow(col, vec3(1.0 / 2.4)) - 0.055, col * 12.92,
+    lessThanEqual(col, vec3(0.0031308)));
   gl_FragColor = vec4(col, 1.0);
 }
 `;
@@ -219,7 +238,7 @@ export interface SkyUniforms {
   uFlux: { value: number };
   uDownwell: { value: number };
   uExposure: { value: number };
-  uMieG: { value: number };
+  uMieG: { value: THREE.Vector3 };
   uMieAlbedo: { value: number };
   uCloudAlbedo: { value: number };
   uSunAngRad: { value: number };
@@ -228,11 +247,11 @@ export interface SkyUniforms {
   uDiffuseHorizon: { value: number };
   uSunPath: { value: number };
   uDiffuseLight: { value: number };
+  uTwilight: { value: number };
   uStarColor: { value: THREE.Color };
-  uSunTint: { value: THREE.Color };
+  uSunBeam: { value: THREE.Color };
   uMieTint: { value: THREE.Color };
   uGroundColor: { value: THREE.Color };
-  uGroundSkyTint: { value: THREE.Color };
 }
 
 export function createSkyMaterial(): { material: THREE.ShaderMaterial; uniforms: SkyUniforms } {
@@ -246,7 +265,7 @@ export function createSkyMaterial(): { material: THREE.ShaderMaterial; uniforms:
     uFlux: { value: 1 },
     uDownwell: { value: 1 },
     uExposure: { value: 1 },
-    uMieG: { value: 0.65 },
+    uMieG: { value: new THREE.Vector3(0.65, 0.65, 0.65) },
     uMieAlbedo: { value: 0.95 },
     uCloudAlbedo: { value: 0 },
     uSunAngRad: { value: 0.00465 },
@@ -255,11 +274,11 @@ export function createSkyMaterial(): { material: THREE.ShaderMaterial; uniforms:
     uDiffuseHorizon: { value: 0 },
     uSunPath: { value: 1 },
     uDiffuseLight: { value: 1 },
+    uTwilight: { value: 1 },
     uStarColor: { value: new THREE.Color(1, 1, 1) },
-    uSunTint: { value: new THREE.Color(1, 1, 1) },
+    uSunBeam: { value: new THREE.Color(1, 1, 1) },
     uMieTint: { value: new THREE.Color(1, 1, 1) },
     uGroundColor: { value: new THREE.Color(0.3, 0.3, 0.3) },
-    uGroundSkyTint: { value: new THREE.Color(0.5, 0.6, 0.8) },
   };
   const material = new THREE.ShaderMaterial({
     vertexShader: SKY_VERT,
@@ -273,5 +292,31 @@ export function createSkyMaterial(): { material: THREE.ShaderMaterial; uniforms:
 
 /** Linear-space color from a hex string (sRGB input). */
 export function hexToLinear(hex: string): THREE.Color {
-  return new THREE.Color(hex).convertSRGBToLinear();
+  return new THREE.Color(hex);
+}
+
+/** Shared CPU-to-GPU binding, also exercised by the rendered-colour checks. */
+export function updateSkyUniforms(uniforms: SkyUniforms, w: WorldSpec, s: SkyState): void {
+  const DEG = Math.PI / 180;
+  uniforms.uTauR.value.set(s.tauR.r, s.tauR.g, s.tauR.b);
+  uniforms.uTauM.value.set(s.tauM.r, s.tauM.g, s.tauM.b);
+  uniforms.uTauA.value.set(s.tauA.r, s.tauA.g, s.tauA.b);
+  const mSun = s.sunPath;
+  uniforms.uTauSun.value.set(s.tauT.r * mSun, s.tauT.g * mSun, s.tauT.b * mSun);
+  uniforms.uSunPath.value = mSun;
+  uniforms.uDiffuseLight.value = s.diffuseLight;
+  uniforms.uTwilight.value = s.twilightLight;
+  uniforms.uFlux.value = s.fluxRel;
+  uniforms.uDownwell.value = s.downwell;
+  uniforms.uExposure.value = s.exposureFinal;
+  uniforms.uMieG.value.set(...(w.aerosol.gRGB ?? [w.aerosol.g, w.aerosol.g, w.aerosol.g]));
+  uniforms.uMieAlbedo.value = w.aerosol.albedo;
+  uniforms.uCloudAlbedo.value = w.cloudAlbedo;
+  uniforms.uSunAngRad.value = (s.starAngularDeg / 2) * DEG;
+  uniforms.uNight.value = s.nightFactor;
+  uniforms.uDiffuseHorizon.value = w.horizonDiffuse ? 1 : 0;
+  uniforms.uStarColor.value.setRGB(s.starColor[0], s.starColor[1], s.starColor[2]);
+  uniforms.uSunBeam.value.setRGB(...s.sunBeam);
+  uniforms.uMieTint.value.setRGB(w.aerosol.tint[0], w.aerosol.tint[1], w.aerosol.tint[2]);
+  uniforms.uGroundColor.value.copy(hexToLinear(w.surfaceColor));
 }

@@ -1,15 +1,13 @@
 /**
- * CPU-side atmospheric radiative transfer.
+ * CPU-side three-channel atmospheric approximation (not a spectral solver).
  *
- * Mirrors the GLSL skydome model so the telemetry deck shows the same numbers
- * that drive the pixels: wavelength-dependent optical depth at 680/550/440 nm,
- * Rayleigh 1/lambda^4 scattering scaled by gas polarizability, Henyey-Greenstein
- * Mie aerosols, CH4/O3 absorption, multi-scattering saturation, cloud-deck
- * albedo dimming, stellar flux falloff, and human retinal adaptation gain.
+ * Supplies the shader's optical depths, stellar flux, direct beam and twilight
+ * factor. Scalar illuminance and RGB sky radiance are separate approximations;
+ * lux is not a photometric integral of the rendered sky.
  */
 import type { WorldSpec } from './worlds';
 
-/** Standard RGB wavelengths (nm): red, green, blue. */
+/** Representative wavelengths (nm), used as a coarse RGB proxy. */
 export const WAVELENGTHS = [680, 550, 440] as const;
 
 export interface ChannelSet {
@@ -36,13 +34,19 @@ export interface SkyOptions {
   aerosolScale: number;
   /** Master switch for molecular absorption (CH4 + O3). */
   absorptionOn: boolean;
-  /** Human-eye logarithmic adaptation vs fixed camera sensor. */
+  /** Heuristic brightness adaptation vs fixed camera exposure. */
   eyeAdapted: boolean;
-  /** User exposure control (stops-ish multiplier). */
+  /** Linear user exposure multiplier (not stops). */
   exposure: number;
 }
 
 export interface SkyState extends SkyOptions {
+  /** Shared near-horizon path proxy, including the horizon below sunset. */
+  sunPath: number;
+  /** Empirical twilight attenuation, applied once to scattered solar light. */
+  twilightLight: number;
+  /** Direct beam RGB: stellar colour times Beer–Lambert transmission, once. */
+  sunBeam: [number, number, number];
   tauR: ChannelSet;
   tauM: ChannelSet;
   tauA: ChannelSet;
@@ -61,34 +65,32 @@ export interface SkyState extends SkyOptions {
    * sun is high (also passed to the shader as uDiffuseLight).
    */
   diffuseLight: number;
-  /**
-   * Diffuse downwelling flux at the surface, relative to Earth's solar
-   * constant. Eddington-style: direct beam plus a diffusion term that keeps
-   * carrying light down through optically thick atmospheres (Venus gloom).
-   */
+  /** Approximate diffuse surface flux relative to Earth's solar constant. */
   downwell: number;
   /** Retinal adaptation gain applied when eyeAdapted (1 for fixed camera). */
   adaptGain: number;
   /** Final exposure = user exposure x adaptation gain. */
   exposureFinal: number;
-  /** Diffuse skylight tint for terrain ambient (linear RGB, normalized). */
-  groundSkyTint: [number, number, number];
   /** Attenuated direct-sun tint (linear RGB, normalized). */
   sunTint: [number, number, number];
   /** Star color (linear RGB, normalized). */
   starColor: [number, number, number];
   /** Apparent stellar angular diameter, degrees. */
   starAngularDeg: number;
-  /** 0 in daylight, 1 in deep night — drives starfield + terrain darkness. */
+  /** 0 in daylight, 1 by -12 degrees — drives the illustrative starfield. */
   nightFactor: number;
   /** Multi-scattering saturation value S(tau) at 550 nm (diagnostic). */
   saturation550: number;
 }
 
-/** Kasten-Young airmass, clamped. Handles sun below horizon via clamp. */
+/**
+ * Kasten–Young (1989), for apparent elevation 0..90 degrees.
+ * Below the horizon we retain the horizon path as a twilight proxy; the
+ * formula itself is not valid there. This Earth fit is approximate elsewhere.
+ */
 export function airMass(elevDeg: number): number {
-  const e = Math.max(elevDeg, -3);
-  const sinE = Math.sin(Math.max(e, 0.5) * DEG);
+  const e = Math.max(0, Math.min(90, elevDeg));
+  const sinE = Math.sin(e * DEG);
   const m = 1 / (sinE + 0.50572 * Math.pow(e + 6.07995, -1.6364));
   return Math.min(m, 38);
 }
@@ -133,7 +135,9 @@ export function columnFactor(world: WorldSpec): number {
   const pressure = world.pressureBar / 1.01325;
   const molecules = 28.97 / world.molarMass;
   const gravity = 9.81 / world.gravityMs2;
-  return pressure * molecules * gravity * weightedXsec(world);
+  // EARTH_TAU_R_550 already describes air, rather than pure nitrogen.
+  const earthAirXsec = 0.78 + 0.21 * RAYLEIGH_XSEC.o2 + 0.01 * RAYLEIGH_XSEC.ar;
+  return pressure * molecules * gravity * weightedXsec(world) / earthAirXsec;
 }
 
 export function rayleighOD(world: WorldSpec): ChannelSet {
@@ -151,9 +155,9 @@ export function mieOD(world: WorldSpec, aerosolScale: number): ChannelSet {
 }
 
 /**
- * CH4 eats red; O3 Chappuis bands eat orange/green (peaking mid-visible,
- * weak at both ends — R must stay below B's total slope or long-path light
- * would invert and kill red sunsets).
+ * Phenomenological CH4/O3 RGB absorption strengths retained from the presets.
+ * These are colour controls, not measured spectral cross-sections or gas
+ * columns; exact methane/ozone colours require a spectral absorption model.
  */
 export function absorptionOD(world: WorldSpec, on: boolean): ChannelSet {
   if (!on) return chan(0, 0, 0);
@@ -181,70 +185,64 @@ export function computeSky(world: WorldSpec, opts: SkyOptions): SkyState {
   const fluxWm2 = (1361 * world.star.luminosity) / (world.distanceAU * world.distanceAU);
   const fluxRel = fluxWm2 / 1361;
 
-  const mSun = airMass(Math.max(opts.sunElevDeg, 1));
-  // Twilight falloff: once the sun drops past the horizon, the whole sky
-  // (beam and diffuse alike) fades fast — ~40 lux at -6°, starlight by -12°.
-  const twilightDim = Math.exp(-Math.max(-opts.sunElevDeg, 0) / 0.8);
+  const mSun = airMass(opts.sunElevDeg);
+  // Empirical Earth-like twilight, not a geometric planetary shadow model.
+  const twilightLight = Math.exp(-Math.max(-opts.sunElevDeg, 0) / 1.2);
   // Low-sun diffuse fade: near the horizon the diffuse field is fed through
   // much longer paths, so skylight drops even before sunset.
   const diffuseLight = Math.exp(-Math.max(mSun - 1, 0) * 0.11);
   const tDir = Math.exp(-tauT.g * mSun);
-  const tDiff = Math.exp(-tauT.g * 1.8);
+  const tauScatG = tauR.g + tauM.g * world.aerosol.albedo * world.aerosol.tint[1];
+  const scatterFraction = tauScatG / Math.max(tauT.g, 1e-9);
+  // A diffuse source must vanish in vacuum and for purely absorbing material.
+  const intercepted = (1 - Math.exp(-tauT.g * 1.8)) * scatterFraction;
   // Deep-diffusion: multiple scattering still delivers light to the surface
   // of optically thick atmospheres long after the direct beam is gone.
-  const deep = (1 - world.cloudAlbedo) / (1 + tauT.g * 0.4);
+  const deep = (1 - world.cloudAlbedo) * intercepted / (1 + tauT.g * 0.4);
+  const sunElevation = Math.max(Math.sin(opts.sunElevDeg * DEG), 0);
+  const directHorizontal = tDir * sunElevation * Math.exp(-world.cloudAlbedo * 3);
+  const diffuse = (0.35 * intercepted * Math.exp(-tauT.g * 1.8) + 0.3 * deep)
+    * diffuseLight * twilightLight;
   // Global horizontal illuminance: direct beam + diffuse skylight, twilight-aware.
   const lux = Math.max(
-    133000 * fluxRel * (0.6 * tDir + (0.35 * tDiff + 0.3 * deep) * diffuseLight) * twilightDim,
-    1e-4,
+    133000 * fluxRel * (directHorizontal + diffuse),
+    0,
   );
-  // Diffuse downwelling flux (relative): direct beam + Eddington diffusion.
-  const downwell = Math.max(
-    fluxRel *
-      (0.55 * tDir + ((0.45 * (1 - world.cloudAlbedo)) / (1 + 0.6 * tauT.g)) * diffuseLight) *
-      twilightDim,
-    1e-6,
-  );
+  const downwell = fluxRel * diffuse;
 
-  // Human photopic adaptation: logarithmic gain across ~20..100000 lux.
+  // Heuristic power-law brightness adaptation with bounded gain.
   const adaptGain = opts.eyeAdapted
-    ? Math.max(0.03, Math.min(60, Math.pow(20000 / lux, 0.72)))
+    ? Math.max(0.03, Math.min(60, Math.pow(20000 / Math.max(lux, 1e-4), 0.72)))
     : 1;
-  // Night dimming on the FINAL exposure (not the gain): otherwise the clamped
-  // 60x gain would amplify the residual 1.5% night sky back to gray. Stars
-  // stay visible because they are added pre-exposure inside the shader.
+  // Fixed-camera exposure must remain fixed through sunset. Twilight belongs
+  // in the incoming light, not in a second, hidden exposure adjustment.
   const nightFactor = Math.max(0, Math.min(1, -opts.sunElevDeg / 12));
-  const exposureFinal = opts.exposure * adaptGain * (1 - nightFactor * 0.995);
+  const exposureFinal = opts.exposure * adaptGain;
 
   // Direct-sun tint after one sun-path attenuation (for sun disc + terrain sun).
   const trans = (tau: number) => Math.exp(-tau * mSun);
   const starColor = kelvinToLinear(world.star.tempK);
-  const sunTint = normalize([
+  // Smooth fictional sodium styling, with no colour jump at 15 degrees.
+  const sodium = world.sodiumSunset ? Math.max(0, Math.min(1, (15 - opts.sunElevDeg) / 15)) : 0;
+  const sunBeam: [number, number, number] = [
     trans(tauT.r) * starColor[0],
-    trans(tauT.g) * starColor[1] * (world.sodiumSunset && opts.sunElevDeg < 15 ? 0.72 : 1.0),
-    trans(tauT.b) * starColor[2] * (world.sodiumSunset && opts.sunElevDeg < 15 ? 0.35 : 1.0),
-  ]);
+    trans(tauT.g) * starColor[1] * (1 - 0.28 * sodium),
+    trans(tauT.b) * starColor[2] * (1 - 0.65 * sodium),
+  ];
+  const sunTint = normalize(sunBeam);
 
-  // Diffuse skylight tint: saturated single-scatter proxy, dimmed by cloud deck.
-  const cloudDim = 1 - world.cloudAlbedo * 0.75;
-  const sky = (tau: number) => saturation(tau) * cloudDim;
-  const groundSkyTint = normalize([
-    (sky(tauR.r) + sky(tauM.r) * world.aerosol.albedo * world.aerosol.tint[0]) * starColor[0] + 1e-4,
-    (sky(tauR.g) + sky(tauM.g) * world.aerosol.albedo * world.aerosol.tint[1]) * starColor[1] + 1e-4,
-    (sky(tauR.b) + sky(tauM.b) * world.aerosol.albedo * world.aerosol.tint[2]) * starColor[2] + 1e-4,
-  ]);
-
-  // Apparent stellar diameter: theta = 2*atan(R_star / d).
+  // Angular diameter of a sphere at centre distance d: 2*asin(R_star / d).
   const starDistKm = world.distanceAU * 1.496e8;
   const starRadKm = world.star.radiusSun * 696000;
-  const starAngularDeg = (2 * Math.atan(starRadKm / starDistKm)) / DEG;
+  const starAngularDeg = (2 * Math.asin(Math.min(1, starRadKm / starDistKm))) / DEG;
 
   return {
     ...opts,
+    sunPath: mSun, twilightLight, sunBeam,
     tauR, tauM, tauA, tauT,
     columnFactor: columnFactor(world),
     fluxWm2, fluxRel, lux, downwell, diffuseLight, adaptGain, exposureFinal,
-    groundSkyTint, sunTint, starColor, starAngularDeg, nightFactor,
-    saturation550: saturation(tauT.g),
+    sunTint, starColor, starAngularDeg, nightFactor,
+    saturation550: saturation(tauScatG),
   };
 }

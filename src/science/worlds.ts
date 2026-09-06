@@ -37,6 +37,8 @@ export interface AerosolSpec {
   density: number;
   /** Henyey-Greenstein asymmetry factor g (-1 back .. +1 forward) */
   g: number;
+  /** Optional RGB asymmetry; qualitative wavelength-dependent dust scattering. */
+  gRGB?: [number, number, number];
   /** Single-scattering albedo (1 = conservative scattering) */
   albedo: number;
   /** Angstrom wavelength exponent: tau ~ lambda^-angstrom */
@@ -120,10 +122,13 @@ export const WORLDS: WorldSpec[] = [
   },
   {
     id: 'mars', name: 'Mars', group: 'Solar System',
-    blurb: 'Butterscotch dust-scattered day; blue-rayleigh sunset glow around the sun.',
+    blurb: 'Butterscotch dust-scattered day; dust sends a blue sunset glow close to the sun (approximate colours).',
     star: SOL, distanceAU: 1.524, pressureBar: 0.006, scaleHeightKm: 11.1, gravityMs2: 3.71, molarMass: 43.34,
     gases: { co2: 0.95, n2: 0.027, ar: 0.016 },
-    aerosol: { name: 'Iron-oxide dust', density: 0.5, g: 0.7, albedo: 0.86, angstrom: 1.2, tint: [1, 0.6, 0.36] },
+    // Near-grey extinction and a narrower blue forward lobe reproduce the
+    // observed *direction* of the sunset colour change. These are qualitative
+    // fit parameters, not measured Martian dust optical constants.
+    aerosol: { name: 'Iron-oxide dust', density: 0.5, g: 0.7, gRGB: [0.65, 0.75, 0.85], albedo: 0.86, angstrom: 0, tint: [1, 0.6, 0.36] },
     ch4: 0, o3: 0, cloudAlbedo: 0, surfaceColor: '#a05c38', groundAlbedo: 0.25, horizonDiffuse: false,
   },
   {

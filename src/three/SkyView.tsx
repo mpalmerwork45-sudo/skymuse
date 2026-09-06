@@ -8,8 +8,8 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import type { WorldSpec } from '../science/worlds';
-import { airMass, type SkyState } from '../science/atmosphere';
-import { createSkyMaterial, hexToLinear } from './skyShader';
+import type { SkyState } from '../science/atmosphere';
+import { createSkyMaterial, updateSkyUniforms } from './skyShader';
 import { buildRingGeometry, dirFromAzElev, makeMoonTexture, makeRingTexture } from './bodies';
 
 const DEG = Math.PI / 180;
@@ -193,31 +193,11 @@ export default function SkyView({ world, sky, view, onViewChange }: SkyViewProps
         -Math.cos(saz) * Math.cos(sel),
       );
       uniforms.uCamPos.value.copy(camera.position);
-      uniforms.uTauR.value.set(s.tauR.r, s.tauR.g, s.tauR.b);
-      uniforms.uTauM.value.set(s.tauM.r, s.tauM.g, s.tauM.b);
-      uniforms.uTauA.value.set(s.tauA.r, s.tauA.g, s.tauA.b);
-      const mSun = airMass(Math.max(s.sunElevDeg, 1));
-      uniforms.uTauSun.value.set(s.tauT.r * mSun, s.tauT.g * mSun, s.tauT.b * mSun);
-      uniforms.uSunPath.value = mSun;
-      uniforms.uDiffuseLight.value = s.diffuseLight;
-      uniforms.uFlux.value = s.fluxRel;
-      uniforms.uDownwell.value = s.downwell;
-      uniforms.uExposure.value = s.exposureFinal;
-      uniforms.uMieG.value = w.aerosol.g;
-      uniforms.uMieAlbedo.value = w.aerosol.albedo;
-      uniforms.uCloudAlbedo.value = w.cloudAlbedo;
-      uniforms.uSunAngRad.value = Math.max((s.starAngularDeg / 2) * DEG, 0.002);
-      uniforms.uNight.value = s.nightFactor;
+      updateSkyUniforms(uniforms, w, s);
       uniforms.uTime.value = t;
-      uniforms.uDiffuseHorizon.value = w.horizonDiffuse ? 1 : 0;
-      uniforms.uStarColor.value.setRGB(s.starColor[0], s.starColor[1], s.starColor[2]);
-      uniforms.uSunTint.value.setRGB(s.sunTint[0], s.sunTint[1], s.sunTint[2]);
-      uniforms.uMieTint.value.setRGB(w.aerosol.tint[0], w.aerosol.tint[1], w.aerosol.tint[2]);
-      uniforms.uGroundColor.value.copy(hexToLinear(w.surfaceColor));
-      uniforms.uGroundSkyTint.value.setRGB(s.groundSkyTint[0], s.groundSkyTint[1], s.groundSkyTint[2]);
 
       // Companion brightness tracks adapted surface light (faint at night).
-      const glow = Math.max(0.03, Math.min(1.25, s.exposureFinal * s.downwell * 3.5));
+      const glow = Math.max(0.03, Math.min(1.25, s.exposureFinal * (s.lux / 133000) * 3.5));
       companions?.children.forEach((o) => {
         const mat = (o as THREE.Mesh | THREE.Sprite).material as THREE.Material & {
           color: THREE.Color;

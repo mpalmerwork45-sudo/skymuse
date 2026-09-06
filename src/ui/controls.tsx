@@ -259,7 +259,7 @@ export function DisplayPanel(props: {
           <TeleRow k="τ total @550nm" v={s.tauT.g.toFixed(3)} />
           <TeleRow k="Multi-scatter S(τ)" v={s.saturation550.toFixed(3)} />
           <TeleRow k="Stellar flux" v={`${s.fluxWm2 >= 100 ? s.fluxWm2.toFixed(0) : s.fluxWm2.toFixed(2)} W/m²`} />
-          <TeleRow k="Surface light" v={fmtLux(s.lux)} />
+          <TeleRow k="Surface light (approx.)" v={fmtLux(s.lux)} />
           <TeleRow k="Retinal gain" v={props.eye ? `${s.adaptGain.toFixed(2)}×` : '1.00× (off)'} />
           <TeleRow k="Final exposure" v={`${s.exposureFinal.toFixed(2)}×`} />
           <TeleRow k="Sun disc" v={`${s.starAngularDeg.toFixed(2)}°`} />
