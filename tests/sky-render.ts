@@ -3,11 +3,12 @@ import {WORLDS,type WorldSpec} from '../src/science/worlds';
 import {computeSky,displayGain,type SkyOptions} from '../src/science/atmosphere';
 import {computeTransport,type TransportResult} from '../src/science/transport';
 import {observe,type AstronomyState} from '../src/science/astronomy';
-import {direction,DEG,stellarDisc,observerRayLookup} from '../src/science/geometry';
+import {direction,DEG,stellarDisc,observerRayLookup,sphereHit,scale,sub,unit,dot,length} from '../src/science/geometry';
 import {luminance,rgb} from '../src/science/spectrum';
 import {createSkyMaterial,bindTransport,updateSkyUniforms} from '../src/three/skyShader';
 import {createDisplay} from '../src/three/display';
 import {createStars,starAttributes} from '../src/three/stars';
+import {companionIlluminants} from '../src/science/lighting';
 
 const checks:{name:string;passed:boolean;detail?:unknown}[]=[],errors:string[]=[];
 const check=(name:string,passed:boolean,detail?:unknown)=>checks.push({name,passed,detail});
@@ -95,10 +96,41 @@ try{
  const refractedStar=starAttributes([[1,...below.map(v=>v*10),0,0,0,-5,.65]],world('earth'),reference.s,testFrame,observation,reference.t);
  const expectedStar=lookup.sample(below)!;
  check('Catalogue stars use the same apparent position and focusing as the disc',refractedStar.positions.length===3&&refractedStar.positions[1]>0&&Math.abs(refractedStar.positions[1]-expectedStar.direction[1])<2e-5&&Math.abs(luminance(Array.from(refractedStar.colours) as [number,number,number])/(2.54e-4*expectedStar.focusing)-1)<.005,{apparentY:refractedStar.positions[1],expectedY:expectedStar.direction[1],focusing:expectedStar.focusing});
+ const sourceBody={name:'reference companion',position:direction(270,70).map(v=>v*300000) as [number,number,number],radiusKm:1737.4,albedo:.12,colour:'#bbbbbb',sunDirection:direction(90,-80),approximate:false};
+ const sourceScene={...observe(moon,observation,-80,90),bodies:[sourceBody]};
+ const illuminants=companionIlluminants(moon,sourceScene),moonlit=setup(moon,{sunElevDeg:-80,illuminants},false);
+ updateSkyUniforms(sky.uniforms,moon,moonlit.s,sourceScene);point(270,70,2);render();
+ const companionImage=fullRaw();let companionFlux=0,coveredOmega=0;
+ for(let y=0;y<512;y++)for(let x=0;x<512;x++){
+  const u=(2*(x+.5)/512-1)*Math.tan(DEG),v=(2*(y+.5)/512-1)*Math.tan(DEG);
+  companionFlux+=companionImage[(y*512+x)*4]*(2*Math.tan(DEG)/512)**2/(1+u*u+v*v)**1.5;
+  coveredOmega+=companionImage[(y*512+x)*4+3]*(2*Math.tan(DEG)/512)**2/(1+u*u+v*v)**1.5;
+ }
+ const incident=rgb(illuminants[0].spectrum)[0];
+ const sphereFlux=stellarDisc(unit(sourceBody.position),Math.asin(sourceBody.radiusKm/length(sourceBody.position)),16384).reduce((sum,q)=>{
+  const t=sphereHit(scale(sourceBody.position,-1),q.dir,sourceBody.radiusKm),normal=unit(sub(scale(q.dir,t),sourceBody.position));
+  return sum+q.weight*Math.max(0,dot(normal,direction(90,-80)))*(sourceBody.radiusKm/length(sourceBody.position))**2;
+ },0)*rgb(moonlit.s.spectrum)[0]*.12;
+ const profile=[[-60,0],[-30,0],[0,0],[30,0],[60,0],[0,-60],[0,60]].map(([dx,dy])=>{
+  const x=256+dx,y=256+dy,u=(2*(x+.5)/512-1)*Math.tan(DEG),v=(2*(y+.5)/512-1)*Math.tan(DEG);
+  const d=sky.uniforms.uForward.value.clone().addScaledVector(sky.uniforms.uRight.value,u).addScaledVector(sky.uniforms.uUp.value,v).normalize().toArray() as [number,number,number];
+  const t=sphereHit(scale(sourceBody.position,-1),d,sourceBody.radiusKm),normal=unit(sub(scale(d,t),sourceBody.position));
+  return {dx,dy,gpu:companionImage[(y*512+x)*4],cpu:rgb(moonlit.s.spectrum)[0]*.12/Math.PI*Math.max(0,dot(normal,direction(90,-80)))};
+ });
+ check('Rendered companion flux agrees with its independent ground illuminant',Math.abs(companionFlux/incident-1)<.01&&Math.abs(companionFlux/sphereFlux-1)<.003,{companionFlux,incident,sphereFlux,ratio:companionFlux/incident,coveredOmega,expectedOmega:Math.PI*(sourceBody.radiusKm/300000)**2});
+ check('Resolved companion surface normals agree with independent finite-sphere rays',profile.every(p=>Math.abs(p.gpu/p.cpu-1)<.01),profile);
+ point(270,-30,60);render();const litGround=raw(256,256);
+ check('Reflected companion light reaches the rendered night ground',litGround[0]>.001&&moonlit.s.secondaryDirectLux>.1,{litGround,directLux:moonlit.s.secondaryDirectLux});
+ gallery('Airless night ground illuminated by a Lambertian companion');
+ const moonSpectrum=reference.s.spectrum.map(e=>e*1e-6);
+ setup(world('earth'),{sunElevDeg:-80,illuminants:[{name:'reference moon',direction:direction(20,35),radiusRad:.00465,spectrum:moonSpectrum}]},false);
+ point(20,35,10);render();const nearMoon=raw(256,256)[0];point(160,35,10);render();const oppositeMoon=raw(256,256)[0];
+ check('Secondary sky glow follows the companion azimuth in the GPU renderer',nearMoon>oppositeMoon*1.2&&oppositeMoon>0,{nearMoon,oppositeMoon});
+ gallery('Earth night sky near the reference moon · scattering from reflected light');
  check('Shaders compile and link',errors.length===0,errors);check('No WebGL errors',renderer.getContext().getError()===0);
 }catch(e){errors.push(String(e));check('Harness completed',false,String(e));}
 finally{
  const result={passed:checks.every(c=>c.passed),checks,errors};(window as unknown as {skyRenderResults:typeof result}).skyRenderResults=result;
  document.querySelector('#results')!.textContent=JSON.stringify(result,null,2);document.title=`${result.passed?'PASS':'FAIL'} — physical rendering checks`;
- renderer.dispose();target.dispose();starTarget.dispose();geometry.dispose();sky.material.dispose();display.material.dispose();stars.material.dispose();stars.geometry.dispose();
+ renderer.dispose();target.dispose();starTarget.dispose();geometry.dispose();sky.material.dispose();sky.uniforms.uBodyReflectance.value.dispose();display.material.dispose();stars.material.dispose();stars.geometry.dispose();
 }

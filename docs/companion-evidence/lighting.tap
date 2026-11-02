@@ -1,0 +1,45 @@
+TAP version 13
+# Subtest: Lambert companion irradiance agrees with independent projected-disc integration at multiple phases
+ok 1 - Lambert companion irradiance agrees with independent projected-disc integration at multiple phases
+  ---
+  duration_ms: 12.624508
+  ...
+# Subtest: reflected illumination scales with observer distance, source power and surface reflectance
+ok 2 - reflected illumination scales with observer distance, source power and surface reflectance
+  ---
+  duration_ms: 0.4985
+  ...
+# Subtest: parent-planet shadows remove companion illumination in the umbra
+ok 3 - parent-planet shadows remove companion illumination in the umbra
+  ---
+  duration_ms: 1.189849
+  ...
+# Subtest: another companion can eclipse the reflected illuminant
+ok 4 - another companion can eclipse the reflected illuminant
+  ---
+  duration_ms: 0.649418
+  ...
+# Subtest: an illuminated companion lights airless ground without fabricating atmospheric glow
+ok 5 - an illuminated companion lights airless ground without fabricating atmospheric glow
+  ---
+  duration_ms: 499.026896
+  ...
+# Subtest: rotated sky components add linearly and preserve the secondary source azimuth
+ok 6 - rotated sky components add linearly and preserve the secondary source azimuth
+  ---
+  duration_ms: 1251.528685
+  ...
+# Subtest: adding an unlit companion does not count thermal emission twice
+ok 7 - adding an unlit companion does not count thermal emission twice
+  ---
+  duration_ms: 395.57027
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2180.266435

@@ -1,7 +1,7 @@
 import type { WorldSpec } from './worlds';
 import { computeSky, opticalDepth, type SkyOptions, type SkyState } from './atmosphere';
 import { BANDS, NM, BAND_RGB, CIE, reflectance, rgb, planck, type Vec3 } from './spectrum';
-import { atmosphereGeometry, ColumnLookup, densities, direction, dot, length, raySegments, stellarDisc, verticalColumn, DEG, type Column } from './geometry';
+import { atmosphereGeometry, ColumnLookup, direction, azElev, dot, length, raySegments, stellarDisc, verticalColumn, DEG, type Column } from './geometry';
 import { emittingLayer, solveLayers } from './twoStream';
 import { refractiveIndex } from './refraction';
 
@@ -9,6 +9,8 @@ export const phaseR=(cos:number)=>3*(1+cos*cos)/(16*Math.PI);
 export const phaseHG=(cos:number,g:number)=>(1-g*g)/(4*Math.PI*(1+g*g-2*g*cos)**1.5);
 export interface TransportResult {
   width:number; height:number; radiance:Float32Array; columns:Float32Array;
+  fullAzimuth:boolean;
+  groundLights:{direction:Vec3;radiusRad:number;rgb:Vec3}[];
   diffuseRGB:Vec3; groundRGB:Vec3; groundDirectRGB:Vec3; groundDiffuseRGB:Vec3;
   lux:number; diffuseLux:number; meanLuminance:number; diffuseSpectrum:Float64Array;
   /** Downwelling flux from the angularly approximate two-stream solution. */
@@ -31,7 +33,7 @@ function beamMean(a:number,b:number):number {
   return (Math.exp(-a)-Math.exp(-b))/(b-a);
 }
 
-export function diffuseProfile(w:WorldSpec,s:SkyState,lookup:ColumnLookup,n:number) {
+export function diffuseProfile(w:WorldSpec,s:SkyState,lookup:ColumnLookup,n:number,thermalOn=true) {
   const g=lookup.g, heights=Float64Array.from({length:n+1},(_,j)=>g.top*(j/n)**2);
   const sun=stellarDisc(direction(0,s.sunElevDeg),s.starAngularDeg*DEG/2,s.starAngularDeg>2?64:12);
   const columns=Array.from(heights,h=>sun.map(q=>lookup.sampleLight([0,g.radius+Math.max(.001,h),0],q.dir)));
@@ -65,20 +67,20 @@ export function diffuseProfile(w:WorldSpec,s:SkyState,lookup:ColumnLookup,n:numb
         source+=q; muWeighted+=q*apparentMu;
       }
       const forward=source>0 ? .5*(1+asym*muWeighted/source):.5;
-      const thermal=2*Math.PI*refractiveIndex(g,(heights[j]+heights[j+1])/2)**2*planck(NM[i],w.temperatureK)*Math.max(0,tau-scat);
+      const thermal=thermalOn?2*Math.PI*refractiveIndex(g,(heights[j]+heights[j+1])/2)**2*planck(NM[i],w.temperatureK)*Math.max(0,tau-scat):0;
       layers.push(emittingLayer(tau,tau>0?scat/tau:0,asym,source*(1-forward)+thermal,source*forward+thermal));
     }
-    const ground=rho[i]*s.directSpectrum[i]+Math.PI*(1-rho[i])*refractiveIndex(g,0)**2*planck(NM[i],w.temperatureK);
+    const ground=rho[i]*s.directSpectrum[i]+(thermalOn?Math.PI*(1-rho[i])*refractiveIndex(g,0)**2*planck(NM[i],w.temperatureK):0);
     const f=solveLayers(layers,rho[i],ground);
     up.push(f.up);down.push(f.down);
   }
   return {heights,up,down,rho};
 }
 
-export function computeTransport(w:WorldSpec,opts:SkyOptions,quality:Quality=STANDARD):TransportResult {
-  const start=performance.now(),s=computeSky(w,opts),lookup=getLookup(w,opts.refractionOn!==false),g=lookup.g;
+function integrateLight(w:WorldSpec,s:SkyState,quality:Quality,thermalOn:boolean):TransportResult {
+  const start=performance.now(),opts=s,lookup=getLookup(w,opts.refractionOn!==false),g=lookup.g;
   const {width,height,steps,layers}=quality,p:Vec3=[0,w.radiusKm+(opts.observerHeightKm??.0017),0];
-  const profile=diffuseProfile(w,s,lookup,layers);
+  const profile=diffuseProfile(w,s,lookup,layers,thermalOn);
   const cap=stellarDisc(direction(0,opts.sunElevDeg),s.starAngularDeg*DEG/2,
     s.starAngularDeg>2?quality.discSamples:8);
   const radiance=new Float32Array(width*height*4),columns=new Float32Array(height*4);
@@ -123,7 +125,7 @@ export function computeTransport(w:WorldSpec,opts:SkyOptions,quality:Quality=STA
           const mu=dot(seg.p,seg.direction)/length(seg.p);
           const asym=(tm*s.optics.aerosolG[i]+tc*w.clouds.g)/Math.max(1e-30,tr+tm+tc);
           const multiple=(tr+tm+tc)*((1-asym*mu)*up+(1+asym*mu)*down)/(2*Math.PI);
-          const thermal=Math.max(0,tau-tr-tm-tc)*localIndexSquared*planck(NM[i],w.temperatureK);
+          const thermal=thermalOn?Math.max(0,tau-tr-tm-tc)*localIndexSquared*planck(NM[i],w.temperatureK):0;
           const integral=tau>1e-9?-Math.expm1(-tau)/tau:1-tau/2;
           L[i]+=rayGain*atten[i]*(single+multiple+thermal)*integral;
           L1[i]+=rayGain*atten[i]*single*integral;Lm[i]+=rayGain*atten[i]*multiple*integral;
@@ -141,12 +143,46 @@ export function computeTransport(w:WorldSpec,opts:SkyOptions,quality:Quality=STA
   const diffuseRGB=rgb(diffuseSpectrum),groundDirect=new Float64Array(BANDS),groundDiffuse=new Float64Array(BANDS);
   for(let i=0;i<BANDS;i++) {
     groundDirect[i]=profile.rho[i]*s.directSpectrum[i]/Math.PI;
-    groundDiffuse[i]=profile.rho[i]*diffuseSpectrum[i]/Math.PI+(1-profile.rho[i])*s.refraction.gain*planck(NM[i],w.temperatureK);
+    groundDiffuse[i]=profile.rho[i]*diffuseSpectrum[i]/Math.PI+(thermalOn?(1-profile.rho[i])*s.refraction.gain*planck(NM[i],w.temperatureK):0);
   }
   const groundDirectRGB=rgb(groundDirect),groundDiffuseRGB=rgb(groundDiffuse);
   const groundRGB=groundDirectRGB.map((v,i)=>v+groundDiffuseRGB[i]) as Vec3;
   const diffuseLux=diffuseSpectrum.reduce((a,v,i)=>a+v*CIE[i][1],0);
   const twoStreamLux=profile.down.reduce((a,v,i)=>a+v[0]*CIE[i][1],0);
   return {width,height,radiance,columns,diffuseRGB,groundRGB,groundDirectRGB,groundDiffuseRGB,
+    fullAzimuth:false,groundLights:[{direction:direction(s.sunAzDeg,s.sunElevDeg),radiusRad:s.starAngularDeg*DEG/2,rgb:groundDirectRGB}],
     lux:s.directLux+diffuseLux,diffuseLux,diffuseSpectrum,meanLuminance,twoStreamLux,singleLux,multipleLux,elapsedMs:performance.now()-start};
+}
+
+/** Sample an axisymmetric half-sky at an arbitrary azimuth and row coordinate. */
+function componentPixel(t:TransportResult,azimuth:number,row:number,channel:number):number {
+  const a=Math.acos(Math.max(-1,Math.min(1,Math.cos(azimuth)))),xx=a/Math.PI*(t.width-1),yy=row*(t.height-1);
+  const x=Math.min(t.width-2,Math.floor(xx)),y=Math.min(t.height-2,Math.floor(yy)),u=xx-x,v=yy-y;
+  const at=(x:number,y:number)=>t.radiance[(y*t.width+x)*4+channel];
+  return (at(x,y)*(1-u)+at(x+1,y)*u)*(1-v)+(at(x,y+1)*(1-u)+at(x+1,y+1)*u)*v;
+}
+
+export function computeTransport(w:WorldSpec,opts:SkyOptions,quality:Quality=STANDARD):TransportResult {
+  const start=performance.now(),s=computeSky(w,opts);
+  // Transfer is linear in incoming light. Solve each axisymmetric illumination
+  // separately, then rotate and add its field. Thermal emission is counted once.
+  const parts=s.lights.map((light,index)=>{
+    const [az,el]=azElev(light.direction);
+    const state={...s,sunAzDeg:az,sunElevDeg:el,spectrum:light.spectrum,directSpectrum:light.directSpectrum,directLux:light.directLux,starAngularDeg:2*light.radiusRad/DEG};
+    return {azimuth:az*DEG,result:integrateLight(w,state,quality,index===0)};
+  });
+  const first=parts[0].result;
+  if(parts.length===1){first.elapsedMs=performance.now()-start;return first;}
+  const width=2*(first.width-1)+1,height=first.height,radiance=new Float32Array(width*height*4);
+  for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+    const phi=2*Math.PI*x/(width-1)+parts[0].azimuth;
+    for(let c=0;c<3;c++)radiance[(y*width+x)*4+c]=parts.reduce((sum,p)=>sum+componentPixel(p.result,phi-p.azimuth,y/(height-1),c),0);
+    radiance[(y*width+x)*4+3]=1;
+  }
+  const vector=(key:'diffuseRGB'|'groundRGB'|'groundDirectRGB'|'groundDiffuseRGB'):Vec3=>[0,1,2].map(c=>parts.reduce((sum,p)=>sum+p.result[key][c],0)) as Vec3;
+  const scalar=(key:'lux'|'diffuseLux'|'meanLuminance'|'twoStreamLux'|'singleLux'|'multipleLux')=>parts.reduce((sum,p)=>sum+p.result[key],0);
+  const diffuseSpectrum=Float64Array.from({length:BANDS},(_,i)=>parts.reduce((sum,p)=>sum+p.result.diffuseSpectrum[i],0));
+  return {...first,width,height,radiance,fullAzimuth:true,groundLights:parts.flatMap(p=>p.result.groundLights),diffuseSpectrum,
+    diffuseRGB:vector('diffuseRGB'),groundRGB:vector('groundRGB'),groundDirectRGB:vector('groundDirectRGB'),groundDiffuseRGB:vector('groundDiffuseRGB'),
+    lux:scalar('lux'),diffuseLux:scalar('diffuseLux'),meanLuminance:scalar('meanLuminance'),twoStreamLux:scalar('twoStreamLux'),singleLux:scalar('singleLux'),multipleLux:scalar('multipleLux'),elapsedMs:performance.now()-start};
 }

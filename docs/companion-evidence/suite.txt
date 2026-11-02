@@ -1,0 +1,39 @@
+
+> skymuse@0.1.0 test
+> node --test tests/*.test.mjs
+
+TAP version 13
+# Subtest: /home/mpalmer/skymuse/tests/atmosphere.test.mjs
+ok 1 - /home/mpalmer/skymuse/tests/atmosphere.test.mjs
+  ---
+  duration_ms: 11591.843668
+  ...
+# Subtest: /home/mpalmer/skymuse/tests/custom-world.test.mjs
+ok 2 - /home/mpalmer/skymuse/tests/custom-world.test.mjs
+  ---
+  duration_ms: 701.155134
+  ...
+# Subtest: /home/mpalmer/skymuse/tests/earth-dwarfs.test.mjs
+ok 3 - /home/mpalmer/skymuse/tests/earth-dwarfs.test.mjs
+  ---
+  duration_ms: 242.984253
+  ...
+# Subtest: /home/mpalmer/skymuse/tests/lighting.test.mjs
+ok 4 - /home/mpalmer/skymuse/tests/lighting.test.mjs
+  ---
+  duration_ms: 2190.722988
+  ...
+# Subtest: /home/mpalmer/skymuse/tests/refraction.test.mjs
+ok 5 - /home/mpalmer/skymuse/tests/refraction.test.mjs
+  ---
+  duration_ms: 307.503984
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11595.004226

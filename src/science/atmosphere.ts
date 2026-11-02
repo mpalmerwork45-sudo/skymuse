@@ -3,6 +3,7 @@ import type { WorldSpec } from './worlds';
 import { METHANE } from './data/methane';
 import { AU_KM, SUN_KM, NM, OZONE, BANDS, stellarSpectrum, stellarLuminosity, rgb, xyz, type Vec3 } from './spectrum';
 import { observerRayLookup, direction, stellarDisc, DEG, type Column, type RefractionView } from './geometry';
+import type {IncidentLight} from './lighting';
 
 export interface ChannelSet { r:number; g:number; b:number; }
 export interface SkyOptions {
@@ -10,6 +11,8 @@ export interface SkyOptions {
   eyeAdapted:boolean; exposure:number; observerHeightKm?:number;
   /** Spherical achromatic primary-ray refraction; enabled unless false. */
   refractionOn?:boolean;
+  /** Reflected companion light in the observer's geometric frame. */
+  illuminants?:IncidentLight[];
 }
 export interface Optics {
   /** Extinction by gas (Rayleigh + methane), haze, ozone, cloud. */
@@ -29,7 +32,9 @@ export interface SkyState extends SkyOptions {
   refraction:RefractionView;
   /** Null if the centre has no primary ray above the planetary limb. */
   sunApparentElevDeg:number|null;
+  lights:DirectLight[]; secondaryDirectLux:number;
 }
+export interface DirectLight extends IncidentLight {directSpectrum:Float64Array;directLux:number;}
 const XSEC: Record<string,number>={n2:1,o2:.9,ar:.85,co2:2.3,h2:.18,he:.035,ch4:1.6,h2o:.65,so2:3.2};
 export function columnFactor(w:WorldSpec):number {
   let mix=0,total=0;
@@ -73,12 +78,16 @@ export function computeSky(w:WorldSpec,o:SkyOptions):SkyState {
   const discRadiance=Float64Array.from(spectrum,e=>e/(Math.PI*Math.sin(radius)**2));
   const observer=observerRayLookup(w,o.observerHeightKm??.0017,o.refractionOn!==false);
   const dir=direction(o.sunAzDeg,o.sunElevDeg);
-  const disc=stellarDisc(dir,radius,96), directSpectrum=new Float64Array(BANDS);
-  for(const q of disc) {
-    const light=observer.sample(q.dir);
-    if(!light||light.direction[1]<=0)continue;
-    for(let i=0;i<BANDS;i++) directSpectrum[i]+=spectrum[i]*q.weight*light.focusing*light.direction[1]*Math.exp(-opticalDepth(optics,i,light.columns));
-  }
+  const lights:DirectLight[]=[{name:w.star.name,direction:dir,radiusRad:radius,spectrum},...(o.illuminants??[])].map(source=>{
+    const directSpectrum=new Float64Array(BANDS);
+    for(const q of stellarDisc(source.direction,source.radiusRad,96)){
+      const light=observer.sample(q.dir);if(!light||light.direction[1]<=0)continue;
+      for(let i=0;i<BANDS;i++)directSpectrum[i]+=source.spectrum[i]*q.weight*light.focusing*light.direction[1]*Math.exp(-opticalDepth(optics,i,light.columns));
+    }
+    return {...source,directSpectrum,directLux:xyz(directSpectrum)[1]};
+  });
+  const directSpectrum=new Float64Array(BANDS);
+  for(const light of lights)for(let i=0;i<BANDS;i++)directSpectrum[i]+=light.directSpectrum[i];
   const centre=observer.sample(dir);
   const normal=transmission(optics,centre?.columns??null).map((t,i)=>t*spectrum[i]*(centre?.focusing??0));
   const select=(f:(i:number)=>number):ChannelSet=>({r:f(32),g:f(19),b:f(8)});
@@ -90,7 +99,8 @@ export function computeSky(w:WorldSpec,o:SkyOptions):SkyState {
     columnFactor:columnFactor(w),fluxWm2,fluxRel:fluxWm2/1361,starAngularDeg:2*radius/DEG,
     directNormalRGB:rgb(normal),directHorizontalRGB:rgb(directSpectrum),starColor:rgb(spectrum),
     lux:directLux,directLux,diffuseLux:0,adaptGain:1,exposureFinal:o.exposure,
-    refraction:observer.view,sunApparentElevDeg:centre?Math.asin(Math.max(-1,Math.min(1,centre.direction[1])))/DEG:null};
+    refraction:observer.view,lights,secondaryDirectLux:lights.slice(1).reduce((sum,l)=>sum+l.directLux,0),
+    sunApparentElevDeg:centre?Math.asin(Math.max(-1,Math.min(1,centre.direction[1])))/DEG:null};
 }
 
 export const CAMERA_GAIN=1/20000;

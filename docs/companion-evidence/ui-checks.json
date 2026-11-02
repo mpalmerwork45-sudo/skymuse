@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "checks": [
+    "A known Moon supplies 0.204 lx direct illumination while the primary star is at −80°",
+    "No worker or renderer errors",
+    "Night ground and all-sky view render with the same completed companion scene"
+  ],
+  "physics": "Radius / gas scale height\n6,371 / 8.40 km\nPressure / gas density\n1.01 bar / 1.23 kg/m³\nRayleigh τ at 550 nm\n0.0990\nAbsorption τ at 550 nm\n0.0282\nCloud extinction τ\n0.0\nOzone column\n300 DU\nBolometric stellar flux\n1361 W/m²\nDirect horizontal\n0.204 lx\nReflected body direct\n0.204 lx\nDiffuse horizontal\n0.0275 lx\nTotal horizontal\n0.2311 lx\nStellar diameter\n0.533°\nStar true / apparent elevation\n-80.00° / centre occluded",
+  "errors": []
+}

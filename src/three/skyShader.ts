@@ -3,8 +3,9 @@ import type { WorldSpec } from '../science/worlds';
 import type { SkyState } from '../science/atmosphere';
 import type { TransportResult } from '../science/transport';
 import type { AstronomyState } from '../science/astronomy';
-import { BANDS, BAND_RGB, linearHex } from '../science/spectrum';
+import { BANDS, BAND_RGB, reflectance } from '../science/spectrum';
 import { direction, DEG } from '../science/geometry';
+import { companionShadow } from '../science/lighting';
 
 export const fullScreenVertex=`varying vec2 vUv; void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}`;
 export const projectionGLSL=`
@@ -26,18 +27,21 @@ float fisheyeMask(vec2 uv){return uFisheye?step(length((uv*2.-1.)*uResolution/mi
 const fragment=`precision highp float;
 varying vec2 vUv;
 ${projectionGLSL}
-uniform sampler2D uSky,uColumns,uSpectral;
+uniform sampler2D uSky,uColumns,uSpectral,uBodyReflectance;
 uniform sampler2D uRefractionForward,uRefractionInverse;
 uniform vec2 uRefractionMin;
 uniform float uRefractionSize,uRefractionGain,uRefractionGradient;
 uniform float uSkyWidth,uSkyHeight,uSunRadius,uRadius,uHeight,uTemperature;
 uniform vec3 uSun,uGroundDirect,uGroundDiffuse,uGroundColour;
 uniform vec4 uProfiles;
-uniform bool uTerrain,uRings;
+uniform bool uTerrain,uRings,uFullAzimuth;
+uniform int uGroundLightCount;
+uniform vec4 uGroundLights[13];
+uniform vec3 uGroundLighting[13];
 uniform vec3 uRingNormal,uRingOrigin;
 uniform int uBodyCount;
 uniform vec4 uBodies[12];
-uniform vec4 uBodyColour[12];
+uniform float uBodyShadow[12];
 float sq(float x){return x*x;}
 vec2 horizontal(vec3 d){float l=length(d.xz);return l>1e-8?d.xz/l:vec2(1.,0.);}
 float escapedRay(vec3 apparent,out vec3 geometric,out vec3 offset){
@@ -58,9 +62,10 @@ vec4 apparentSource(vec3 geometric){
 }
 vec2 skyUV(vec3 d){
  float az=atan(d.x,-d.z),sunAz=atan(uSun.x,-uSun.z);
- float diff=abs(mod(az-sunAz+PI,2.*PI)-PI);
+ float relative=mod(az-sunAz+2.*PI,2.*PI);
+ float coordinate=uFullAzimuth?relative/(2.*PI):min(relative,2.*PI-relative)/PI;
  float h=sqrt(max(0.,asin(clamp(d.y,-1.,1.)))/(PI*.5));
- return vec2((diff/PI*(uSkyWidth-1.)+.5)/uSkyWidth,(h*(uSkyHeight-1.)+.5)/uSkyHeight);
+ return vec2((coordinate*(uSkyWidth-1.)+.5)/uSkyWidth,(h*(uSkyHeight-1.)+.5)/uSkyHeight);
 }
 vec4 column(vec3 d){float h=sqrt(max(0.,asin(clamp(d.y,-1.,1.)))/(PI*.5));return texture2D(uColumns,vec2((h*(uSkyHeight-1.)+.5)/uSkyHeight,.5));}
 vec3 spectralLight(vec4 cols,bool disc){
@@ -73,6 +78,16 @@ vec3 spectralLight(vec4 cols,bool disc){
  }return c*uRefractionGain;
 }
 float angle(vec3 a,vec3 b){return atan(length(cross(a,b)),dot(a,b));}
+vec3 reflectedBody(vec4 cols,int body){
+ vec3 c=vec3(0.);
+ for(int i=0;i<48;i++){
+  float x=(float(i)+.5)/48.;
+  vec4 ext=texture2D(uSpectral,vec2(x,.125));
+  vec3 light=texture2D(uSpectral,vec2(x,.375)).rgb;
+  float rho=texture2D(uBodyReflectance,vec2(x,(float(body)+.5)/12.)).r;
+  c+=light*rho*exp(-dot(ext,cols));
+ }return c*uRefractionGain;
+}
 float coverage(float separation,float radius,float pixel){
  // Small objects use a unit-integral Gaussian PSF, preserving total angular flux.
  if(radius<pixel*.75){float sigma=pixel*.55;return sq(radius)/(2.*sq(sigma))*exp(-.5*sq(separation/sigma));}
@@ -136,18 +151,23 @@ vec4 foregroundColumn(vec3 ray,float distance){
     exp(-.5*sq((h-uProfiles.z)/uProfiles.w))/(uProfiles.w*2.506628));
  }return c;
 }
-vec3 capSample(int i,int n){
+vec3 lightCap(vec3 centre,float radius,int i,int n){
  float pair=floor(float(i)*.5);
- float c=1.-(1.-cos(uSunRadius))*(pair+.5)/(float(n)*.5),ss=sqrt(max(0.,1.-c*c));
- vec3 a=normalize(cross(abs(uSun.y)<.9?vec3(0.,1.,0.):vec3(1.,0.,0.),uSun)),b=cross(uSun,a);
+ float c=1.-(1.-cos(radius))*(pair+.5)/(float(n)*.5),ss=sqrt(max(0.,1.-c*c));
+ vec3 a=normalize(cross(abs(centre.y)<.9?vec3(0.,1.,0.):vec3(1.,0.,0.),centre)),b=cross(centre,a);
  float phi=pair*2.39996323+mod(float(i),2.)*PI;
- return c*uSun+ss*(cos(phi)*a+sin(phi)*b);
+ return c*centre+ss*(cos(phi)*a+sin(phi)*b);
 }
-float bodyLighting(vec3 point,vec3 normal){
+vec3 capSample(int i,int n){return lightCap(uSun,uSunRadius,i,n);}
+float bodyLighting(vec3 point,vec3 normal,int self){
  float light=0.;
  for(int i=0;i<16;i++){
   vec3 d=capSample(i,16);
   float shadow=sphere(point-uRingOrigin,d,uRadius)>0.?0.:1.;
+  for(int j=0;j<12;j++){
+   if(j>=uBodyCount)break;
+   if(j!=self&&sphere(point-uBodies[j].xyz,d,uBodies[j].w)>0.)shadow=0.;
+  }
   light+=max(0.,dot(normal,d))*shadow;
  }return light/16.*2./(1.+cos(uSunRadius));
 }
@@ -170,11 +190,18 @@ void main(){
  if(hit>=0.){
   vec3 p=rayPoint(ray,hit);
   float e=.0002;vec3 normal=normalize(vec3(surfaceY(p.xz-vec2(e,0.))-surfaceY(p.xz+vec2(e,0.)),2.*e,surfaceY(p.xz-vec2(0.,e))-surfaceY(p.xz+vec2(0.,e))));
-  float diffuseFactor=.5*(1.+normal.y),beam=0.,flatBeam=0.;
-  for(int i=0;i<16;i++){vec4 source=apparentSource(capSample(i,16));vec3 d=source.xyz;
-   flatBeam+=source.a*max(0.,d.y);beam+=source.a*max(0.,dot(normal,d))*terrainShadow(p,d);}
+  float diffuseFactor=.5*(1.+normal.y);vec3 direct=vec3(0.);
+  for(int l=0;l<13;l++){
+   if(l>=uGroundLightCount)break;
+   if(max(max(uGroundLighting[l].r,uGroundLighting[l].g),uGroundLighting[l].b)<=0.)continue;
+   float beam=0.,flatBeam=0.;
+   int samples=l==0?16:4;
+   for(int i=0;i<16;i++){if(i>=samples)break;vec4 source=apparentSource(lightCap(uGroundLights[l].xyz,uGroundLights[l].w,i,samples));vec3 d=source.xyz;
+    flatBeam+=source.a*max(0.,d.y);beam+=source.a*max(0.,dot(normal,d))*terrainShadow(p,d);}
+   direct+=uGroundLighting[l]*beam/max(flatBeam,1e-8);
+  }
   float textureFactor=1.;
-  light=(uGroundDiffuse*diffuseFactor+uGroundDirect*beam/max(flatBeam,1e-8))*textureFactor;
+  light=(uGroundDiffuse*diffuseFactor+direct)*textureFactor;
   // Numerical finite-path extinction on the local quadratic ray; homogeneous source-function
   // approximation for nearby terrain inscattering (documented separately).
   vec4 localCols=foregroundColumn(ray,hit);
@@ -194,10 +221,16 @@ void main(){
    float sep=angle(geometric,relative/dist),ar=asin(radius/dist),cover=coverage(sep,ar,pixel);
    if(cover<1e-7||dist>=nearest)continue;
    float t=sphere(-relative,geometric,radius);
-   vec3 normal=t>0.?normalize(offset+geometric*t-centre):-relative/dist;
-   float phase=bodyLighting(t>0.?offset+geometric*t:centre,normal);
-   if(ar<pixel*.75){float a=acos(clamp(dot(-centre/dist,uSun),-1.,1.));phase=2./3.*(sin(a)+(PI-a)*cos(a))/PI;}
-   vec3 colour=spectralLight(cols,false)*uBodyColour[i].rgb*uBodyColour[i].a*phase;
+   // Antialiased pixels just outside the limb use the tangent normal. A
+   // face-on fallback would fabricate a bright rim and excess integrated light.
+   // Work relative to the body centre rather than subtracting two large
+   // positions after a distant intersection. This preserves limb normals.
+   vec3 perpendicular=cross(geometric,cross(relative,geometric));
+   vec3 normal=normalize(-perpendicular-geometric*sqrt(max(0.,radius*radius-dot(perpendicular,perpendicular))));
+   vec3 surfacePoint=centre+radius*normal;
+   float phase=bodyLighting(surfacePoint,normal,i);
+   if(ar<pixel*.75){float a=acos(clamp(dot(-centre/dist,uSun),-1.,1.));phase=2./3.*(sin(a)+(PI-a)*cos(a))/PI*uBodyShadow[i];}
+   vec3 colour=reflectedBody(cols,i)*phase;
    light=mix(light,sky+colour,clamp(cover,0.,1.));opacity=max(opacity,clamp(cover,0.,1.));nearest=dist;
   }
   if(uRings){
@@ -221,16 +254,19 @@ export function createSkyMaterial(){
   uSky:{value:new THREE.DataTexture(new Float32Array(4),1,1,THREE.RGBAFormat,THREE.FloatType)},
   uColumns:{value:new THREE.DataTexture(new Float32Array(4),1,1,THREE.RGBAFormat,THREE.FloatType)},
   uSpectral:{value:new THREE.DataTexture(new Float32Array(BANDS*4*4),BANDS,4,THREE.RGBAFormat,THREE.FloatType)},
+  uBodyReflectance:{value:new THREE.DataTexture(new Float32Array(BANDS*12*4),BANDS,12,THREE.RGBAFormat,THREE.FloatType)},
   uRefractionForward:{value:new THREE.DataTexture(new Float32Array(4),1,1,THREE.RGBAFormat,THREE.FloatType)},
   uRefractionInverse:{value:new THREE.DataTexture(new Float32Array(4),1,1,THREE.RGBAFormat,THREE.FloatType)},
   uRefractionMin:{value:new THREE.Vector2()},uRefractionSize:{value:1},uRefractionGain:{value:1},uRefractionGradient:{value:0},
   uSkyWidth:{value:1},uSkyHeight:{value:1},uSun:{value:new THREE.Vector3()},uSunRadius:{value:.00465},uRadius:{value:6371},uHeight:{value:.0017},uTemperature:{value:288},
-  uGroundDirect:{value:new THREE.Vector3()},uGroundDiffuse:{value:new THREE.Vector3()},uGroundColour:{value:new THREE.Vector3()},uTerrain:{value:true},
+  uGroundDirect:{value:new THREE.Vector3()},uGroundDiffuse:{value:new THREE.Vector3()},uGroundColour:{value:new THREE.Vector3()},uTerrain:{value:true},uFullAzimuth:{value:false},
+  uGroundLightCount:{value:0},uGroundLights:{value:Array.from({length:13},()=>new THREE.Vector4())},uGroundLighting:{value:Array.from({length:13},()=>new THREE.Vector3())},
   uProfiles:{value:new THREE.Vector4(8.4,1.2,3,1)},
   uRings:{value:false},uRingNormal:{value:new THREE.Vector3()},uRingOrigin:{value:new THREE.Vector3()},uBodyCount:{value:0},
-  uBodies:{value:Array.from({length:12},()=>new THREE.Vector4())},uBodyColour:{value:Array.from({length:12},()=>new THREE.Vector4())},
+  uBodies:{value:Array.from({length:12},()=>new THREE.Vector4())},uBodyShadow:{value:Array.from({length:12},()=>1)},
  };
  for(const tex of [uniforms.uSky.value,uniforms.uColumns.value,uniforms.uSpectral.value,uniforms.uRefractionForward.value,uniforms.uRefractionInverse.value]){tex.needsUpdate=true;tex.minFilter=THREE.LinearFilter;tex.magFilter=THREE.LinearFilter;}
+ uniforms.uBodyReflectance.value.needsUpdate=true;
  const material=new THREE.ShaderMaterial({uniforms,vertexShader:fullScreenVertex,fragmentShader:fragment,depthTest:false,depthWrite:false});
  return {uniforms,material};
 }
@@ -256,11 +292,14 @@ export function updateSkyUniforms(u:SkyUniforms,w:WorldSpec,s:SkyState,a:Astrono
  u.uRings.value=!!w.rings;u.uRingNormal.value.fromArray(a.ringNormal);u.uRingOrigin.value.fromArray(a.ringOrigin);
  u.uRingOrigin.value.y-=u.uHeight.value;
  u.uBodyCount.value=Math.min(12,a.bodies.length);
+ const bodyData=new Float32Array(BANDS*12*4);
  a.bodies.slice(0,12).forEach((b,i)=>{
   u.uBodies.value[i].set(b.position[0],b.position[1]-u.uHeight.value,b.position[2],b.radiusKm);
-  const col=linearHex(b.colour),y=.2126*col[0]+.7152*col[1]+.0722*col[2];
-  u.uBodyColour.value[i].set(col[0]/y,col[1]/y,col[2]/y,b.albedo);
+  const rho=reflectance(b.colour,b.albedo);
+  u.uBodyShadow.value[i]=companionShadow(b,w,a,direction(s.sunAzDeg,s.sunElevDeg),s.starAngularDeg*DEG/2);
+  for(let band=0;band<BANDS;band++)bodyData[(i*BANDS+band)*4]=rho[band];
  });
+ u.uBodyReflectance.value.image.data=bodyData;u.uBodyReflectance.value.needsUpdate=true;
 }
 export function bindTransport(u:SkyUniforms,r:TransportResult){
  u.uSky.value.dispose();u.uColumns.value.dispose();
@@ -268,5 +307,7 @@ export function bindTransport(u:SkyUniforms,r:TransportResult){
  u.uColumns.value=new THREE.DataTexture(r.columns,r.height,1,THREE.RGBAFormat,THREE.FloatType);
  for(const tex of [u.uSky.value,u.uColumns.value]){tex.minFilter=THREE.LinearFilter;tex.magFilter=THREE.LinearFilter;tex.needsUpdate=true;}
  u.uSkyWidth.value=r.width;u.uSkyHeight.value=r.height;
+ u.uFullAzimuth.value=r.fullAzimuth;u.uGroundLightCount.value=Math.min(13,r.groundLights.length);
+ r.groundLights.slice(0,13).forEach((l,i)=>{u.uGroundLights.value[i].set(...l.direction,l.radiusRad);u.uGroundLighting.value[i].fromArray(l.rgb);});
  u.uGroundDirect.value.fromArray(r.groundDirectRGB);u.uGroundDiffuse.value.fromArray(r.groundDiffuseRGB);
 }

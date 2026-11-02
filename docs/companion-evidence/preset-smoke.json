@@ -1,0 +1,457 @@
+{
+  "passed": true,
+  "quality": {
+    "width": 8,
+    "height": 8,
+    "steps": 32,
+    "layers": 96,
+    "discSamples": 12
+  },
+  "results": [
+    {
+      "world": "earth",
+      "trueElevation": -20,
+      "companionSources": [
+        "Moon"
+      ],
+      "reflectedDirectLux": 0.13220847182932405,
+      "lux": 0.1525797451602098,
+      "elapsedMs": 798.601895
+    },
+    {
+      "world": "earth",
+      "trueElevation": 45,
+      "companionSources": [
+        "Moon"
+      ],
+      "reflectedDirectLux": 0.035802112921022124,
+      "lux": 84773.41244504182,
+      "elapsedMs": 210.39940200000012
+    },
+    {
+      "world": "earth-k-dwarf",
+      "trueElevation": -20,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 1.2884541424359567e-11,
+      "elapsedMs": 72.05172100000004
+    },
+    {
+      "world": "earth-k-dwarf",
+      "trueElevation": 45,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 47525.66546212686,
+      "elapsedMs": 124.04952800000001
+    },
+    {
+      "world": "earth-m-dwarf",
+      "trueElevation": -20,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 1.113613410876873e-11,
+      "elapsedMs": 30.64652799999999
+    },
+    {
+      "world": "earth-m-dwarf",
+      "trueElevation": 45,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 24419.39828612815,
+      "elapsedMs": 77.44578000000001
+    },
+    {
+      "world": "mars",
+      "trueElevation": -20,
+      "companionSources": [
+        "Phobos",
+        "Deimos"
+      ],
+      "reflectedDirectLux": 0.000008134902788132385,
+      "lux": 0.00001632543456588661,
+      "elapsedMs": 738.892797
+    },
+    {
+      "world": "mars",
+      "trueElevation": 45,
+      "companionSources": [
+        "Phobos",
+        "Deimos"
+      ],
+      "reflectedDirectLux": 2.8760472438454427e-7,
+      "lux": 27956.000140452295,
+      "elapsedMs": 244.068988
+    },
+    {
+      "world": "venus",
+      "trueElevation": -20,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 0.002034416792387092,
+      "elapsedMs": 517.1434239999999
+    },
+    {
+      "world": "venus",
+      "trueElevation": 45,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 618.2856671957984,
+      "elapsedMs": 104.51083699999981
+    },
+    {
+      "world": "mercury",
+      "trueElevation": -20,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 0,
+      "elapsedMs": 112.02806599999985
+    },
+    {
+      "world": "mercury",
+      "trueElevation": 45,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 625820.5871920134,
+      "elapsedMs": 74.41305499999999
+    },
+    {
+      "world": "moon",
+      "trueElevation": -20,
+      "companionSources": [
+        "Earth"
+      ],
+      "reflectedDirectLux": 3.435451842573135,
+      "lux": 3.435451842573135,
+      "elapsedMs": 186.07016299999987
+    },
+    {
+      "world": "moon",
+      "trueElevation": 45,
+      "companionSources": [
+        "Earth"
+      ],
+      "reflectedDirectLux": 0.44005606712729156,
+      "lux": 93728.96357922774,
+      "elapsedMs": 177.90361499999972
+    },
+    {
+      "world": "jupiter",
+      "trueElevation": -20,
+      "companionSources": [
+        "Io",
+        "Europa",
+        "Ganymede",
+        "Callisto"
+      ],
+      "reflectedDirectLux": 0.00002898254986864811,
+      "lux": 0.004805788764577378,
+      "elapsedMs": 709.1332379999999
+    },
+    {
+      "world": "jupiter",
+      "trueElevation": 45,
+      "companionSources": [
+        "Io",
+        "Europa",
+        "Ganymede",
+        "Callisto"
+      ],
+      "reflectedDirectLux": 9.627515294448617e-7,
+      "lux": 1824.813993197289,
+      "elapsedMs": 236.38487900000018
+    },
+    {
+      "world": "saturn",
+      "trueElevation": -20,
+      "companionSources": [
+        "Titan"
+      ],
+      "reflectedDirectLux": 0,
+      "lux": 4.015326388956698e-46,
+      "elapsedMs": 629.85905
+    },
+    {
+      "world": "saturn",
+      "trueElevation": 45,
+      "companionSources": [
+        "Titan",
+        "Rhea"
+      ],
+      "reflectedDirectLux": 0,
+      "lux": 572.0075418799559,
+      "elapsedMs": 128.4296119999999
+    },
+    {
+      "world": "uranus",
+      "trueElevation": -20,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 1.2596610302137347e-108,
+      "elapsedMs": 544.7344230000008
+    },
+    {
+      "world": "uranus",
+      "trueElevation": 45,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 155.20040614887228,
+      "elapsedMs": 70.71526100000028
+    },
+    {
+      "world": "neptune",
+      "trueElevation": -20,
+      "companionSources": [
+        "Triton"
+      ],
+      "reflectedDirectLux": 5.2929862827099086e-8,
+      "lux": 0.000010023993552783702,
+      "elapsedMs": 572.5587770000002
+    },
+    {
+      "world": "neptune",
+      "trueElevation": 45,
+      "companionSources": [
+        "Triton"
+      ],
+      "reflectedDirectLux": 9.028290592052976e-9,
+      "lux": 66.91101277795875,
+      "elapsedMs": 139.08104099999946
+    },
+    {
+      "world": "titan",
+      "trueElevation": -20,
+      "companionSources": [
+        "Saturn"
+      ],
+      "reflectedDirectLux": 0.004155216995162739,
+      "lux": 0.040453427191496624,
+      "elapsedMs": 766.3569209999996
+    },
+    {
+      "world": "titan",
+      "trueElevation": 45,
+      "companionSources": [
+        "Saturn"
+      ],
+      "reflectedDirectLux": 0.0004981918859036126,
+      "lux": 52.76979547783503,
+      "elapsedMs": 183.21750100000008
+    },
+    {
+      "world": "triton",
+      "trueElevation": -20,
+      "companionSources": [
+        "Neptune"
+      ],
+      "reflectedDirectLux": 0.06259615960959337,
+      "lux": 0.0650805053554585,
+      "elapsedMs": 801.3989740000006
+    },
+    {
+      "world": "triton",
+      "trueElevation": 45,
+      "companionSources": [
+        "Neptune"
+      ],
+      "reflectedDirectLux": 0.007510286861939664,
+      "lux": 103.57388474847238,
+      "elapsedMs": 216.2828439999994
+    },
+    {
+      "world": "pluto",
+      "trueElevation": -20,
+      "companionSources": [
+        "Charon"
+      ],
+      "reflectedDirectLux": 0.00882183853756745,
+      "lux": 0.053590124861477816,
+      "elapsedMs": 949.140813
+    },
+    {
+      "world": "pluto",
+      "trueElevation": 45,
+      "companionSources": [
+        "Charon"
+      ],
+      "reflectedDirectLux": 0.0009300310189741753,
+      "lux": 59.70615837407798,
+      "elapsedMs": 217.16526599999997
+    },
+    {
+      "world": "proxima-b",
+      "trueElevation": -20,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 7.409531383993555e-14,
+      "elapsedMs": 534.1722019999997
+    },
+    {
+      "world": "proxima-b",
+      "trueElevation": 45,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 14948.371116737464,
+      "elapsedMs": 92.22434000000067
+    },
+    {
+      "world": "trappist-1e",
+      "trueElevation": -20,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 3.559266159780465e-26,
+      "elapsedMs": 580.4984800000002
+    },
+    {
+      "world": "trappist-1e",
+      "trueElevation": 45,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 4105.88610333538,
+      "elapsedMs": 108.6254740000004
+    },
+    {
+      "world": "kepler-186f",
+      "trueElevation": -20,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 4.173236508305871e-15,
+      "elapsedMs": 532.5492549999999
+    },
+    {
+      "world": "kepler-186f",
+      "trueElevation": 45,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 10899.371773816027,
+      "elapsedMs": 92.69024800000079
+    },
+    {
+      "world": "wasp-12b",
+      "trueElevation": -20,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 11813330.213371716,
+      "elapsedMs": 658.2410639999998
+    },
+    {
+      "world": "wasp-12b",
+      "trueElevation": 45,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 227192123.7788337,
+      "elapsedMs": 123.64319200000136
+    },
+    {
+      "world": "lv426-pre",
+      "trueElevation": -20,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 1.3098743934393248e-18,
+      "elapsedMs": 521.9744929999997
+    },
+    {
+      "world": "lv426-pre",
+      "trueElevation": 45,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 1381.6162384339966,
+      "elapsedMs": 55.58215399999972
+    },
+    {
+      "world": "lv426-post",
+      "trueElevation": -20,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 9.779657103984664e-25,
+      "elapsedMs": 531.1050999999989
+    },
+    {
+      "world": "lv426-post",
+      "trueElevation": 45,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 11500.41128590719,
+      "elapsedMs": 56.19869000000108
+    },
+    {
+      "world": "arrakis",
+      "trueElevation": -20,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 4.955103449099543e-21,
+      "elapsedMs": 541.8537329999999
+    },
+    {
+      "world": "arrakis",
+      "trueElevation": 45,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 93856.72870658574,
+      "elapsedMs": 85.7324349999999
+    },
+    {
+      "world": "solaris",
+      "trueElevation": -20,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 2.954408765086329e-22,
+      "elapsedMs": 534.6082220000008
+    },
+    {
+      "world": "solaris",
+      "trueElevation": 45,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 19316.617050450033,
+      "elapsedMs": 73.21008900000015
+    },
+    {
+      "world": "tukayyid",
+      "trueElevation": -20,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 9.112637366674979e-13,
+      "elapsedMs": 541.7560049999993
+    },
+    {
+      "world": "tukayyid",
+      "trueElevation": 45,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 46037.46423749004,
+      "elapsedMs": 89.92185700000118
+    },
+    {
+      "world": "outreach",
+      "trueElevation": -20,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 9.431811109769846e-23,
+      "elapsedMs": 534.1713570000011
+    },
+    {
+      "world": "outreach",
+      "trueElevation": 45,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 57161.15605976022,
+      "elapsedMs": 85.53660200000013
+    },
+    {
+      "world": "luthien",
+      "trueElevation": -20,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 1.5501572173541737e-21,
+      "elapsedMs": 534.4596170000004
+    },
+    {
+      "world": "luthien",
+      "trueElevation": 45,
+      "companionSources": [],
+      "reflectedDirectLux": 0,
+      "lux": 10279.754850359914,
+      "elapsedMs": 65.844638999999
+    }
+  ]
+}

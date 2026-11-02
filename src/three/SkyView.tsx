@@ -82,7 +82,7 @@ export default function SkyView(props:SkyViewProps){
   const release=()=>{drag=null;};
   const wheel=(e:WheelEvent)=>{e.preventDefault();const p=live.current;p.onViewChange({...p.view,fov:Math.max(15,Math.min(110,p.view.fov+e.deltaY*.025))});};
   const canvas=renderer.domElement;canvas.addEventListener('pointerdown',down);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);canvas.addEventListener('wheel',wheel,{passive:false});
-  return ()=>{disposed=true;cancelAnimationFrame(raf);observer.disconnect();geometry.dispose();sky.material.dispose();display.material.dispose();stars.geometry.dispose();stars.material.dispose();target.dispose();starTarget.dispose();sky.uniforms.uSky.value.dispose();sky.uniforms.uColumns.value.dispose();sky.uniforms.uSpectral.value.dispose();sky.uniforms.uRefractionForward.value.dispose();sky.uniforms.uRefractionInverse.value.dispose();renderer.dispose();canvas.remove();};
+  return ()=>{disposed=true;cancelAnimationFrame(raf);observer.disconnect();geometry.dispose();sky.material.dispose();display.material.dispose();stars.geometry.dispose();stars.material.dispose();target.dispose();starTarget.dispose();sky.uniforms.uSky.value.dispose();sky.uniforms.uColumns.value.dispose();sky.uniforms.uSpectral.value.dispose();sky.uniforms.uBodyReflectance.value.dispose();sky.uniforms.uRefractionForward.value.dispose();sky.uniforms.uRefractionInverse.value.dispose();renderer.dispose();canvas.remove();};
  },[]);
  return <div ref={mountRef} className="absolute inset-0 touch-none">{error&&<pre role="alert" className="absolute left-1/2 top-1/2 z-50 max-w-xl -translate-x-1/2 whitespace-pre-wrap bg-black p-4 text-red-300">{error}</pre>}</div>;
 }

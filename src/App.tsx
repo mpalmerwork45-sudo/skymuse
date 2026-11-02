@@ -4,6 +4,7 @@ import {WORLDS} from './science/worlds';
 import {computeSky} from './science/atmosphere';
 import {observe,type Observation} from './science/astronomy';
 import {useTransport} from './science/useTransport';
+import {companionIlluminants} from './science/lighting';
 import {DisplayPanel,Hud,Slider,WorldPanel} from './ui/controls';
 import WorldEditor from './ui/WorldEditor';
 import {CUSTOM_STORAGE_KEY,CUSTOM_WORLD_ID,draftFromWorld,parseCustomWorldDraft,resolveCustomWorld,type CustomWorldDraft} from './science/customWorld';
@@ -27,12 +28,13 @@ export default function App(){
  useEffect(()=>{const resize=()=>{if(window.innerWidth<640){setWorldsOpen(false);setDisplayOpen(false);}};window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize);},[]);
  const astronomy=useMemo(()=>observe(base,observation,sunElev,sunAz),[base,observation,sunElev,sunAz]);
  const world=useMemo(()=>({...base,distanceAU:astronomy.distanceAU,clouds:cloudsOn?base.clouds:{...base.clouds,opticalDepth:0}}),[base,astronomy.distanceAU,cloudsOn]);
- const options=useMemo(()=>({sunElevDeg:astronomy.sunElevDeg,sunAzDeg:astronomy.sunAzDeg,aerosolScale:dustOn?aerosol:0,absorptionOn:absorption,eyeAdapted:eye,exposure,refractionOn:refraction}),[astronomy.sunElevDeg,astronomy.sunAzDeg,dustOn,aerosol,absorption,eye,exposure,refraction]);
+ const illuminants=useMemo(()=>companionIlluminants(world,astronomy),[world,astronomy]);
+ const options=useMemo(()=>({sunElevDeg:astronomy.sunElevDeg,sunAzDeg:astronomy.sunAzDeg,aerosolScale:dustOn?aerosol:0,absorptionOn:absorption,eyeAdapted:eye,exposure,refractionOn:refraction,illuminants}),[astronomy.sunElevDeg,astronomy.sunAzDeg,dustOn,aerosol,absorption,eye,exposure,refraction,illuminants]);
  const state=useMemo(()=>computeSky(world,options),[world,options]);
- const transport=useTransport(world,options);
+ const transport=useTransport(world,options,{astronomy,observation});
  const renderedWorld=transport.completed?.world??world;
  const renderedSky=useMemo(()=>computeSky(renderedWorld,{...(transport.completed?.options??options),eyeAdapted:eye,exposure}),[renderedWorld,transport.completed,options,eye,exposure]);
- const renderedAstronomy=useMemo(()=>observe(renderedWorld,observation,renderedSky.sunElevDeg,renderedSky.sunAzDeg),[renderedWorld,observation,renderedSky.sunElevDeg,renderedSky.sunAzDeg]);
+ const renderedScene=!transport.current&&transport.completed?transport.completed.scene:{astronomy,observation};
  const sky=useMemo(()=>({...state,lux:transport.result?.lux??state.lux,diffuseLux:transport.result?.diffuseLux??0}),[state,transport.result]);
  useEffect(()=>{if(!play||observation.mode!=='ephemeris')return;const id=setInterval(()=>setObservation(o=>({...o,date:new Date(Date.parse(o.date)+600000).toISOString()})),3000);return()=>clearInterval(id);},[play,observation.mode]);
  const selectWorld=(id:string)=>{setWorldId(id);setPlay(false);setView({...DEFAULT_VIEW});if(id==='saturn')setObservation(o=>({...o,latitude:20}));if(id===CUSTOM_WORLD_ID||WORLDS.find(w=>w.id===id)?.star.name!=='Sol')setObservation(o=>({...o,mode:'manual'}));};
@@ -48,7 +50,7 @@ export default function App(){
  };
  const button='rounded-lg border border-white/10 bg-neutral-950/80 px-3 py-1.5 text-xs hover:bg-neutral-800';
  return <div className="relative h-full w-full overflow-hidden bg-black text-neutral-200">
-  <SkyView world={renderedWorld} sky={renderedSky} astronomy={renderedAstronomy} observation={observation} transport={transport.result} view={view} onViewChange={setView}/>
+  <SkyView world={renderedWorld} sky={renderedSky} astronomy={renderedScene.astronomy} observation={renderedScene.observation} transport={transport.result} view={view} onViewChange={setView}/>
   <div className="pointer-events-none absolute inset-x-0 top-0 flex flex-col justify-between gap-3 sm:flex-row p-3">
    <div className="pointer-events-auto max-w-lg rounded-lg border border-white/10 bg-neutral-950/85 px-3 py-2 backdrop-blur">
     <h1 className="text-sm font-bold tracking-[.2em] text-amber-100">SKYMUSE <span className="font-normal tracking-normal text-neutral-400">· planetary skies</span></h1>

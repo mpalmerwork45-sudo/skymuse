@@ -1,0 +1,208 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "GPU resolved stellar radiance is independent of distance",
+      "passed": true,
+      "detail": {
+        "disc1": 2131366784,
+        "disc2": 2131366784
+      }
+    },
+    {
+      "name": "Unresolved stellar disc conserves inverse-square angular flux",
+      "passed": true,
+      "detail": {
+        "energyA": 358.3353665641149,
+        "energyB": 89.58384164102873
+      }
+    },
+    {
+      "name": "Actual fisheye places a horizon star on the rim",
+      "passed": true,
+      "detail": {
+        "centre": 0,
+        "rim": 429312732.58302116
+      }
+    },
+    {
+      "name": "Earth daylight side sky is spectrally blue",
+      "passed": true,
+      "detail": [
+        1981.5267333984375,
+        2939.103759765625,
+        4603.60400390625,
+        0
+      ]
+    },
+    {
+      "name": "Opaque Venus clouds remove the direct stellar image",
+      "passed": true,
+      "detail": {
+        "centreVenus": [
+          854.18115234375,
+          24.988754272460938,
+          -19.567541122436523,
+          1
+        ],
+        "leftVenus": [
+          847.3472900390625,
+          24.68398666381836,
+          -19.399675369262695,
+          1
+        ]
+      }
+    },
+    {
+      "name": "Companion phase follows stellar illumination, with no positive night-light floor",
+      "passed": true,
+      "detail": {
+        "lit": 13784.6982421875,
+        "dark": 0
+      }
+    },
+    {
+      "name": "Foreground absorption extinguishes a bright companion",
+      "passed": true,
+      "detail": {
+        "obscured": 0
+      }
+    },
+    {
+      "name": "Catalogue starlight is attenuated by the atmosphere",
+      "passed": true
+    },
+    {
+      "name": "WASP partial-disc setting remains illuminated",
+      "passed": true,
+      "detail": 12215455.06989829
+    },
+    {
+      "name": "Refracted resolved radiance follows the L/n² invariant",
+      "passed": true,
+      "detail": {
+        "centreImage": 2132547712,
+        "intrinsic": 2131367156.4196205,
+        "gain": 1.0005541359695878
+      }
+    },
+    {
+      "name": "GPU horizon disc is lifted and flattened by the shared ray geometry",
+      "passed": true,
+      "detail": {
+        "apparent": 0.4924549036629206,
+        "flattening": 0.8407583293803572
+      }
+    },
+    {
+      "name": "Refracted GPU disc flux agrees with independent incident-cap quadrature",
+      "passed": true,
+      "detail": {
+        "energy": 121814.83144086653,
+        "predicted": 121766.49234857547,
+        "ratio": 1.000396981890163
+      }
+    },
+    {
+      "name": "Catalogue stars use the same apparent position and focusing as the disc",
+      "passed": true,
+      "detail": {
+        "apparentY": 0.0042538875713944435,
+        "expectedY": 0.004252972402665357,
+        "focusing": 0.8176033225868864
+      }
+    },
+    {
+      "name": "Rendered companion flux agrees with its independent ground illuminant",
+      "passed": true,
+      "detail": {
+        "companionFlux": 0.3846735458142879,
+        "incident": 0.3828669102856981,
+        "sphereFlux": 0.3845065379811599,
+        "ratio": 1.0047187037585508,
+        "coveredOmega": 0.00010539900001031182,
+        "expectedOmega": 0.00010536757805383461
+      }
+    },
+    {
+      "name": "Resolved companion surface normals agree with independent finite-sphere rays",
+      "passed": true,
+      "detail": [
+        {
+          "dx": -60,
+          "dy": 0,
+          "gpu": 3900.261962890625,
+          "cpu": 3897.12060674892
+        },
+        {
+          "dx": -30,
+          "dy": 0,
+          "gpu": 5108.74365234375,
+          "cpu": 5106.302397964043
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "gpu": 5443.83349609375,
+          "cpu": 5441.527800756677
+        },
+        {
+          "dx": 30,
+          "dy": 0,
+          "gpu": 5084.80126953125,
+          "cpu": 5082.350304749632
+        },
+        {
+          "dx": 60,
+          "dy": 0,
+          "gpu": 3836.76708984375,
+          "cpu": 3833.6336266365033
+        },
+        {
+          "dx": 0,
+          "dy": -60,
+          "gpu": 4562.8046875,
+          "cpu": 4572.816674959475
+        },
+        {
+          "dx": 0,
+          "dy": 60,
+          "gpu": 3174.046142578125,
+          "cpu": 3157.891761860701
+        }
+      ]
+    },
+    {
+      "name": "Reflected companion light reaches the rendered night ground",
+      "passed": true,
+      "detail": {
+        "litGround": [
+          0.013817504979670048,
+          0.012293634004890919,
+          0.011768359690904617,
+          1
+        ],
+        "directLux": 0.3293207525111843
+      }
+    },
+    {
+      "name": "Secondary sky glow follows the companion azimuth in the GPU renderer",
+      "passed": true,
+      "detail": {
+        "nearMoon": 0.011531617492437363,
+        "oppositeMoon": 0.0014441770035773516
+      }
+    },
+    {
+      "name": "Shaders compile and link",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "No WebGL errors",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "pageErrors": []
+}

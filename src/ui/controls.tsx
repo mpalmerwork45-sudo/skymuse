@@ -155,6 +155,7 @@ export function DisplayPanel(p:{calculating:boolean;world:WorldSpec;sky:SkyState
    ['Rayleigh τ at 550 nm',s.tauR.g.toFixed(4)],['Absorption τ at 550 nm',s.tauA.g.toFixed(4)],
    ['Cloud extinction τ',p.world.clouds.opticalDepth.toFixed(1)],['Ozone column',`${p.world.ozoneDU.toFixed(0)} DU`],
    ['Bolometric stellar flux',`${s.fluxWm2.toPrecision(4)} W/m²`],['Direct horizontal',`${s.directLux.toPrecision(3)} lx`],
+   ['Reflected body direct',`${s.secondaryDirectLux.toPrecision(3)} lx`],
    ['Diffuse horizontal',`${s.diffuseLux.toPrecision(3)} lx`],['Total horizontal',`${s.lux.toPrecision(4)} lx`],
    ['Stellar diameter',`${s.starAngularDeg.toFixed(3)}°`],
    ['Star true / apparent elevation',`${s.sunElevDeg.toFixed(2)}° / ${s.sunApparentElevDeg===null?'centre occluded':s.sunApparentElevDeg.toFixed(2)+'°'}`],
