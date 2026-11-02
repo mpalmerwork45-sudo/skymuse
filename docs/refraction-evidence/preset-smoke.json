@@ -1,0 +1,412 @@
+{
+  "passed": true,
+  "quality": {
+    "width": 8,
+    "height": 8,
+    "steps": 32,
+    "layers": 96,
+    "discSamples": 12
+  },
+  "results": [
+    {
+      "world": "earth",
+      "trueElevation": -0.5,
+      "apparentElevation": 0.0819404557120969,
+      "lux": 753.9868293226515,
+      "diffuseLux": 753.9222450491973,
+      "elapsedMs": 1117.070297
+    },
+    {
+      "world": "earth",
+      "trueElevation": 45,
+      "apparentElevation": 45.01582463859321,
+      "lux": 84773.37112637903,
+      "diffuseLux": 12555.815223772292,
+      "elapsedMs": 138.59053100000006
+    },
+    {
+      "world": "earth-k-dwarf",
+      "trueElevation": -0.5,
+      "apparentElevation": 0.0819404557120969,
+      "lux": 417.8305942557064,
+      "diffuseLux": 417.7586967646984,
+      "elapsedMs": 290.335196
+    },
+    {
+      "world": "earth-k-dwarf",
+      "trueElevation": 45,
+      "apparentElevation": 45.01582463859321,
+      "lux": 47525.66546212686,
+      "diffuseLux": 6911.3517631392315,
+      "elapsedMs": 208.043502
+    },
+    {
+      "world": "earth-m-dwarf",
+      "trueElevation": -0.5,
+      "apparentElevation": 0.0819404557120969,
+      "lux": 212.98604766289952,
+      "diffuseLux": 212.87311409564444,
+      "elapsedMs": 226.466453
+    },
+    {
+      "world": "earth-m-dwarf",
+      "trueElevation": 45,
+      "apparentElevation": 45.01582463859321,
+      "lux": 24419.39828612815,
+      "diffuseLux": 3477.592377149774,
+      "elapsedMs": 105.54846799999996
+    },
+    {
+      "world": "mars",
+      "trueElevation": -0.5,
+      "apparentElevation": null,
+      "lux": 183.4851998040756,
+      "diffuseLux": 183.4851998040756,
+      "elapsedMs": 993.1376409999998
+    },
+    {
+      "world": "mars",
+      "trueElevation": 45,
+      "apparentElevation": 45.00018867441853,
+      "lux": 27956.000140032815,
+      "diffuseLux": 8095.390250032658,
+      "elapsedMs": 189.41887999999972
+    },
+    {
+      "world": "venus",
+      "trueElevation": -0.5,
+      "apparentElevation": 8.196709895108775,
+      "lux": 18.91796740128736,
+      "diffuseLux": 18.91796740128736,
+      "elapsedMs": 845.5612810000002
+    },
+    {
+      "world": "venus",
+      "trueElevation": 45,
+      "apparentElevation": 45.832625982606345,
+      "lux": 618.2856671957984,
+      "diffuseLux": 618.2856671957984,
+      "elapsedMs": 197.22483400000056
+    },
+    {
+      "world": "mercury",
+      "trueElevation": -0.5,
+      "apparentElevation": null,
+      "lux": 90.96958226077238,
+      "diffuseLux": 0,
+      "elapsedMs": 303.2775409999995
+    },
+    {
+      "world": "mercury",
+      "trueElevation": 45,
+      "apparentElevation": 44.99999999999999,
+      "lux": 625820.5871920134,
+      "diffuseLux": 0,
+      "elapsedMs": 117.66097600000012
+    },
+    {
+      "world": "moon",
+      "trueElevation": -0.5,
+      "apparentElevation": null,
+      "lux": 0,
+      "diffuseLux": 0,
+      "elapsedMs": 133.33513099999982
+    },
+    {
+      "world": "moon",
+      "trueElevation": 45,
+      "apparentElevation": 44.99999999999999,
+      "lux": 93728.52352316062,
+      "diffuseLux": 0,
+      "elapsedMs": 102.5585459999993
+    },
+    {
+      "world": "jupiter",
+      "trueElevation": -0.5,
+      "apparentElevation": 0.24670162927778372,
+      "lux": 11.55124892093976,
+      "diffuseLux": 11.55124892093976,
+      "elapsedMs": 898.9557850000001
+    },
+    {
+      "world": "jupiter",
+      "trueElevation": 45,
+      "apparentElevation": 45.0112330504175,
+      "lux": 1824.813816650669,
+      "diffuseLux": 1818.2598267417611,
+      "elapsedMs": 119.72027400000024
+    },
+    {
+      "world": "saturn",
+      "trueElevation": -0.5,
+      "apparentElevation": 0.08539040620930291,
+      "lux": 7.199681930467634,
+      "diffuseLux": 7.199681930467634,
+      "elapsedMs": 935.6975849999999
+    },
+    {
+      "world": "saturn",
+      "trueElevation": 45,
+      "apparentElevation": 45.01366728224775,
+      "lux": 572.0075418799559,
+      "diffuseLux": 565.2567542231351,
+      "elapsedMs": 211.9888149999997
+    },
+    {
+      "world": "uranus",
+      "trueElevation": -0.5,
+      "apparentElevation": 0.5581314124829179,
+      "lux": 1.887009998217688,
+      "diffuseLux": 1.887009998217688,
+      "elapsedMs": 960.7372290000003
+    },
+    {
+      "world": "uranus",
+      "trueElevation": 45,
+      "apparentElevation": 45.02926379716639,
+      "lux": 155.20040614887228,
+      "diffuseLux": 147.15076185005987,
+      "elapsedMs": 173.2330779999993
+    },
+    {
+      "world": "neptune",
+      "trueElevation": -0.5,
+      "apparentElevation": 0.7843044254762678,
+      "lux": 0.65939263892263,
+      "diffuseLux": 0.65939263892263,
+      "elapsedMs": 849.6212569999989
+    },
+    {
+      "world": "neptune",
+      "trueElevation": 45,
+      "apparentElevation": 45.03206382646807,
+      "lux": 66.91101106815785,
+      "diffuseLux": 63.373963429387366,
+      "elapsedMs": 118.83349300000009
+    },
+    {
+      "world": "titan",
+      "trueElevation": -0.5,
+      "apparentElevation": 0.501051141885044,
+      "lux": 1.6274508116655395,
+      "diffuseLux": 1.627450811665539,
+      "elapsedMs": 959.6406969999989
+    },
+    {
+      "world": "titan",
+      "trueElevation": 45,
+      "apparentElevation": 45.07193318609686,
+      "lux": 52.765788886178335,
+      "diffuseLux": 50.17857154386183,
+      "elapsedMs": 118.63751200000115
+    },
+    {
+      "world": "triton",
+      "trueElevation": -0.5,
+      "apparentElevation": null,
+      "lux": 0.9809100156094815,
+      "diffuseLux": 0.9809100156094815,
+      "elapsedMs": 1041.2139169999991
+    },
+    {
+      "world": "triton",
+      "trueElevation": 45,
+      "apparentElevation": 45.00000171229753,
+      "lux": 103.56619753783755,
+      "diffuseLux": 2.754132549805701,
+      "elapsedMs": 217.91610700000092
+    },
+    {
+      "world": "pluto",
+      "trueElevation": -0.5,
+      "apparentElevation": null,
+      "lux": 0.2748140842903134,
+      "diffuseLux": 0.2748140842903134,
+      "elapsedMs": 1286.9216830000005
+    },
+    {
+      "world": "pluto",
+      "trueElevation": 45,
+      "apparentElevation": 45.00000106712048,
+      "lux": 59.70521912229873,
+      "diffuseLux": 0.6786857593233231,
+      "elapsedMs": 152.94013099999938
+    },
+    {
+      "world": "proxima-b",
+      "trueElevation": -0.5,
+      "apparentElevation": 0.10086170667689591,
+      "lux": 127.52197538365216,
+      "diffuseLux": 127.32301804728783,
+      "elapsedMs": 927.4192159999984
+    },
+    {
+      "world": "proxima-b",
+      "trueElevation": 45,
+      "apparentElevation": 45.015220454073386,
+      "lux": 14948.371116737464,
+      "diffuseLux": 2185.1054175816903,
+      "elapsedMs": 144.3516929999987
+    },
+    {
+      "world": "trappist-1e",
+      "trueElevation": -0.5,
+      "apparentElevation": 0.14928206193691052,
+      "lux": 51.098251235653656,
+      "diffuseLux": 51.098251235653656,
+      "elapsedMs": 1058.6749820000005
+    },
+    {
+      "world": "trappist-1e",
+      "trueElevation": 45,
+      "apparentElevation": 45.01852641509889,
+      "lux": 4105.88610333538,
+      "diffuseLux": 3834.8915246185084,
+      "elapsedMs": 174.91328200000135
+    },
+    {
+      "world": "kepler-186f",
+      "trueElevation": -0.5,
+      "apparentElevation": 0.25911819699882693,
+      "lux": 85.43688355644188,
+      "diffuseLux": 85.42217450356749,
+      "elapsedMs": 897.148650000001
+    },
+    {
+      "world": "kepler-186f",
+      "trueElevation": 45,
+      "apparentElevation": 45.02011996098013,
+      "lux": 10899.371773816027,
+      "diffuseLux": 2167.536013106189,
+      "elapsedMs": 128.62426699999924
+    },
+    {
+      "world": "wasp-12b",
+      "trueElevation": -0.5,
+      "apparentElevation": null,
+      "lux": 19909272.01319938,
+      "diffuseLux": 19867825.237007182,
+      "elapsedMs": 1029.3997259999996
+    },
+    {
+      "world": "wasp-12b",
+      "trueElevation": 45,
+      "apparentElevation": 45.00078921554133,
+      "lux": 227192123.77883375,
+      "diffuseLux": 169109698.3175606,
+      "elapsedMs": 181.45512899999812
+    },
+    {
+      "world": "lv426-pre",
+      "trueElevation": -0.5,
+      "apparentElevation": 1.0491482529592326,
+      "lux": 17.957570059569953,
+      "diffuseLux": 17.957570059569953,
+      "elapsedMs": 770.2214499999973
+    },
+    {
+      "world": "lv426-pre",
+      "trueElevation": 45,
+      "apparentElevation": 45.060475949189644,
+      "lux": 1381.6162384339966,
+      "diffuseLux": 1381.5936970463433,
+      "elapsedMs": 93.96792000000278
+    },
+    {
+      "world": "lv426-post",
+      "trueElevation": -0.5,
+      "apparentElevation": 0.09384357772706181,
+      "lux": 156.56586412686275,
+      "diffuseLux": 156.56586412686275,
+      "elapsedMs": 798.9585399999996
+    },
+    {
+      "world": "lv426-post",
+      "trueElevation": 45,
+      "apparentElevation": 45.01679013304952,
+      "lux": 11500.41128590719,
+      "diffuseLux": 11500.410563963658,
+      "elapsedMs": 95.31193099999655
+    },
+    {
+      "world": "arrakis",
+      "trueElevation": -0.5,
+      "apparentElevation": 0.07844220827555641,
+      "lux": 697.2127945520506,
+      "diffuseLux": 697.2127945520506,
+      "elapsedMs": 933.0239909999982
+    },
+    {
+      "world": "arrakis",
+      "trueElevation": 45,
+      "apparentElevation": 45.01629987973331,
+      "lux": 93856.72870658574,
+      "diffuseLux": 52701.423634742685,
+      "elapsedMs": 149.29602100000193
+    },
+    {
+      "world": "solaris",
+      "trueElevation": -0.5,
+      "apparentElevation": 0.11285753917173512,
+      "lux": 156.3069950389731,
+      "diffuseLux": 156.3069950389731,
+      "elapsedMs": 818.9534529999983
+    },
+    {
+      "world": "solaris",
+      "trueElevation": 45,
+      "apparentElevation": 45.01657331677964,
+      "lux": 19316.617050450033,
+      "diffuseLux": 18335.343217113255,
+      "elapsedMs": 112.66021400000318
+    },
+    {
+      "world": "tukayyid",
+      "trueElevation": -0.5,
+      "apparentElevation": 0.04170752954750948,
+      "lux": 381.57372206145493,
+      "diffuseLux": 381.56609109438506,
+      "elapsedMs": 926.2805099999969
+    },
+    {
+      "world": "tukayyid",
+      "trueElevation": 45,
+      "apparentElevation": 45.01469540409605,
+      "lux": 46037.46423749004,
+      "diffuseLux": 10007.750420333916,
+      "elapsedMs": 145.9543709999998
+    },
+    {
+      "world": "outreach",
+      "trueElevation": -0.5,
+      "apparentElevation": 0.07304614627781365,
+      "lux": 458.9437701442727,
+      "diffuseLux": 458.9437701442727,
+      "elapsedMs": 837.0590210000009
+    },
+    {
+      "world": "outreach",
+      "trueElevation": 45,
+      "apparentElevation": 45.015551734673245,
+      "lux": 57161.15605976021,
+      "diffuseLux": 45812.145058928996,
+      "elapsedMs": 115.4249830000008
+    },
+    {
+      "world": "luthien",
+      "trueElevation": -0.5,
+      "apparentElevation": 0.2618557166206545,
+      "lux": 99.34381022176899,
+      "diffuseLux": 99.34381022176899,
+      "elapsedMs": 789.6826440000004
+    },
+    {
+      "world": "luthien",
+      "trueElevation": 45,
+      "apparentElevation": 45.02105760232474,
+      "lux": 10279.754850359914,
+      "diffuseLux": 10240.942604219948,
+      "elapsedMs": 89.33748399999968
+    }
+  ]
+}

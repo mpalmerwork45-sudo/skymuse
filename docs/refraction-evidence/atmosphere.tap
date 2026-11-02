@@ -1,0 +1,125 @@
+TAP version 13
+# Subtest: physical constants and solar angular diameter
+ok 1 - physical constants and solar angular diameter
+  ---
+  duration_ms: 21.165041
+  ...
+# Subtest: inverse-square irradiance, invariant resolved stellar radiance
+ok 2 - inverse-square irradiance, invariant resolved stellar radiance
+  ---
+  duration_ms: 2.066322
+  ...
+# Subtest: finite stellar disc illuminates the horizon and a partly risen WASP star
+ok 3 - finite stellar disc illuminates the horizon and a partly risen WASP star
+  ---
+  duration_ms: 15.794548
+  ...
+# Subtest: CIE/Planck luminous efficacy matches independent 1 nm integration references
+ok 4 - CIE/Planck luminous efficacy matches independent 1 nm integration references
+  ---
+  duration_ms: 0.533833
+  ...
+# Subtest: hydrostatic molecular column and wavelength law
+ok 5 - hydrostatic molecular column and wavelength law
+  ---
+  duration_ms: 95.378627
+  ...
+# Subtest: 300 DU ozone has measured Chappuis ordering and magnitude
+ok 6 - 300 DU ozone has measured Chappuis ordering and magnitude
+  ---
+  duration_ms: 27.119502
+  ...
+# Subtest: methane follows molecule column, band structure and measured temperature interpolation
+ok 7 - methane follows molecule column, band structure and measured temperature interpolation
+  ---
+  duration_ms: 8.368313
+  ...
+# Subtest: spherical horizon columns depend on radius and scale height
+ok 8 - spherical horizon columns depend on radius and scale height
+  ---
+  duration_ms: 0.896882
+  ...
+# Subtest: layered cloud profile integrates its specified optical depth
+ok 9 - layered cloud profile integrates its specified optical depth
+  ---
+  duration_ms: 59.674922
+  ...
+# Subtest: two-stream slabs conserve energy and have correct absorbing/conservative limits
+ok 10 - two-stream slabs conserve energy and have correct absorbing/conservative limits
+  ---
+  duration_ms: 0.516921
+  ...
+# Subtest: Rayleigh and Henyey–Greenstein phase functions integrate to one over solid angle
+ok 11 - Rayleigh and Henyey–Greenstein phase functions integrate to one over solid angle
+  ---
+  duration_ms: 5.381634
+  ...
+# Subtest: adding solver sums interlayer reflection and ground feedback without energy creation
+ok 12 - adding solver sums interlayer reflection and ground feedback without energy creation
+  ---
+  duration_ms: 0.591162
+  ...
+# Subtest: vacuum and pure absorption create no scattered light
+ok 13 - vacuum and pure absorption create no scattered light
+  ---
+  duration_ms: 957.547932
+  ...
+# Subtest: surface albedo changes ground radiance and atmospheric multiple scattering
+ok 14 - surface albedo changes ground radiance and atmospheric multiple scattering
+  ---
+  duration_ms: 1770.639017
+  ...
+# Subtest: higher-order scattering becomes negligible relative to first order in a thin atmosphere
+ok 15 - higher-order scattering becomes negligible relative to first order in a thin atmosphere
+  ---
+  duration_ms: 2445.15309
+  ...
+# Subtest: hemisphere integral of rendered radiance is the displayed diffuse illuminance
+ok 16 - hemisphere integral of rendered radiance is the displayed diffuse illuminance
+  ---
+  duration_ms: 1183.866096
+  ...
+# Subtest: thin-atmosphere radiance converges under angular/path refinement
+ok 17 - thin-atmosphere radiance converges under angular/path refinement
+  ---
+  duration_ms: 5809.714169
+  ...
+# Subtest: 180° equidistant projection covers zenith and every horizon azimuth
+ok 18 - 180° equidistant projection covers zenith and every horizon azimuth
+  ---
+  duration_ms: 1.140424
+  ...
+# Subtest: catalogue stellar radii, temperatures and luminosities are consistent
+ok 19 - catalogue stellar radii, temperatures and luminosities are consistent
+  ---
+  duration_ms: 0.222012
+  ...
+# Subtest: physical ring bands preserve Cassini, Encke and Keeler gaps
+ok 20 - physical ring bands preserve Cassini, Encke and Keeler gaps
+  ---
+  duration_ms: 0.195391
+  ...
+# Subtest: ephemerides respond to time, latitude and orbital distance; Moon has Earth
+ok 21 - ephemerides respond to time, latitude and orbital distance; Moon has Earth
+  ---
+  duration_ms: 2.857454
+  ...
+# Subtest: fixed exposure is independent of scene brightness; adapted gain handles extreme daylight
+ok 22 - fixed exposure is independent of scene brightness; adapted gain handles extreme daylight
+  ---
+  duration_ms: 0.142169
+  ...
+# Subtest: all catalogue presets remain finite at noon, horizon and night
+ok 23 - all catalogue presets remain finite at noon, horizon and night
+  ---
+  duration_ms: 493.291192
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12915.482536

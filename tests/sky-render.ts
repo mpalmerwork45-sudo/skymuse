@@ -3,8 +3,8 @@ import {WORLDS,type WorldSpec} from '../src/science/worlds';
 import {computeSky,displayGain,type SkyOptions} from '../src/science/atmosphere';
 import {computeTransport,type TransportResult} from '../src/science/transport';
 import {observe,type AstronomyState} from '../src/science/astronomy';
-import {direction,DEG} from '../src/science/geometry';
-import {luminance} from '../src/science/spectrum';
+import {direction,DEG,stellarDisc,observerRayLookup} from '../src/science/geometry';
+import {luminance,rgb} from '../src/science/spectrum';
 import {createSkyMaterial,bindTransport,updateSkyUniforms} from '../src/three/skyShader';
 import {createDisplay} from '../src/three/display';
 import {createStars,starAttributes} from '../src/three/stars';
@@ -68,6 +68,33 @@ try{
  check('Catalogue starlight is attenuated by the atmosphere',clear.colours.length>0&&blocked.colours.length===0);
  setup({...world('saturn'),clouds:{...world('saturn').clouds,opticalDepth:0}},{sunElevDeg:25});point(180,30);render();gallery('Saturn · latitude 20° · cloud layer disabled');
  setup(world('wasp-12b'),{sunElevDeg:-15});point(90,5);render();check('WASP partial-disc setting remains illuminated',current.lux>1000,current.lux);gallery('WASP-12b · centre −15°, upper limb above horizon');
+ // An explicitly transparent reference medium isolates refraction geometry and
+ // radiometry from Earth's very strong, wavelength-dependent horizon extinction.
+ resize(512,512);
+ const reference=setup(world('earth'),{sunElevDeg:0,refractionOn:true},false);
+ reference.s.optics.extinction.forEach(c=>c.fill(0));reference.t.radiance.fill(0);
+ reference.t.groundDirectRGB.fill(0);reference.t.groundDiffuseRGB.fill(0);
+ updateSkyUniforms(sky.uniforms,world('earth'),reference.s,reference.a);bindTransport(sky.uniforms,reference.t);
+ const apparent=reference.s.sunApparentElevDeg!;
+ point(90,apparent,2);render();const image=fullRaw();
+ const intrinsic=rgb(reference.s.discRadiance)[0],centreImage=raw(256,256)[0];
+ check('Refracted resolved radiance follows the L/n² invariant',Math.abs(centreImage/(intrinsic*reference.s.refraction.gain)-1)<2e-5,{centreImage,intrinsic,gain:reference.s.refraction.gain});
+ let energy=0,sx=0,sy=0,sxx=0,syy=0;
+ for(let y=0;y<512;y++)for(let x=0;x<512;x++){
+  const u=(2*(x+.5)/512-1)*Math.tan(DEG),v=(2*(y+.5)/512-1)*Math.tan(DEG);
+  const omega=(2*Math.tan(DEG)/512)**2/(1+u*u+v*v)**1.5,w=image[(y*512+x)*4]*omega;
+  energy+=w;sx+=w*u;sy+=w*v;sxx+=w*u*u;syy+=w*v*v;
+ }
+ const flattening=Math.sqrt((syy/energy-(sy/energy)**2)/(sxx/energy-(sx/energy)**2));
+ check('GPU horizon disc is lifted and flattened by the shared ray geometry',apparent>.4&&apparent<.7&&flattening>.65&&flattening<.95,{apparent,flattening});
+ const lookup=observerRayLookup(world('earth'));
+ const predicted=rgb(reference.s.spectrum)[0]*stellarDisc(direction(90,0),reference.s.starAngularDeg*DEG/2,4096).reduce((sum,q)=>sum+q.weight*(lookup.sample(q.dir)?.focusing??0),0);
+ check('Refracted GPU disc flux agrees with independent incident-cap quadrature',Math.abs(energy/predicted-1)<.015,{energy,predicted,ratio:energy/predicted});
+ gallery('Transparent refractive reference · true centre 0° · disc lifted and flattened');
+ const below=direction(90,-.3),testFrame={...reference.a,east:[1,0,0],up:[0,1,0],north:[0,0,-1],observerEQJ:[0,0,0]} as AstronomyState;
+ const refractedStar=starAttributes([[1,...below.map(v=>v*10),0,0,0,-5,.65]],world('earth'),reference.s,testFrame,observation,reference.t);
+ const expectedStar=lookup.sample(below)!;
+ check('Catalogue stars use the same apparent position and focusing as the disc',refractedStar.positions.length===3&&refractedStar.positions[1]>0&&Math.abs(refractedStar.positions[1]-expectedStar.direction[1])<2e-5&&Math.abs(luminance(Array.from(refractedStar.colours) as [number,number,number])/(2.54e-4*expectedStar.focusing)-1)<.005,{apparentY:refractedStar.positions[1],expectedY:expectedStar.direction[1],focusing:expectedStar.focusing});
  check('Shaders compile and link',errors.length===0,errors);check('No WebGL errors',renderer.getContext().getError()===0);
 }catch(e){errors.push(String(e));check('Harness completed',false,String(e));}
 finally{

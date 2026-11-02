@@ -19,6 +19,7 @@ export default function App(){
  const [editorOpen,setEditorOpen]=useState(false),[storageNotice,setStorageNotice]=useState('');
  const [sunElev,setSunElev]=useState(2),[sunAz,setSunAz]=useState(90),[aerosol,setAerosol]=useState(1);
  const [dustOn,setDustOn]=useState(true),[cloudsOn,setCloudsOn]=useState(true),[absorption,setAbsorption]=useState(true);
+ const [refraction,setRefraction]=useState(true);
  const [eye,setEye]=useState(true),[exposure,setExposure]=useState(1),[view,setView]=useState(DEFAULT_VIEW);
  const [worldsOpen,setWorldsOpen]=useState(()=>window.innerWidth>=640),[displayOpen,setDisplayOpen]=useState(()=>window.innerWidth>=640),[teleOpen,setTeleOpen]=useState(true);
  const [observation,setObservation]=useState<Observation>({date:'2026-10-30T06:00:00Z',latitude:0,longitude:0,mode:'manual'});
@@ -26,7 +27,7 @@ export default function App(){
  useEffect(()=>{const resize=()=>{if(window.innerWidth<640){setWorldsOpen(false);setDisplayOpen(false);}};window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize);},[]);
  const astronomy=useMemo(()=>observe(base,observation,sunElev,sunAz),[base,observation,sunElev,sunAz]);
  const world=useMemo(()=>({...base,distanceAU:astronomy.distanceAU,clouds:cloudsOn?base.clouds:{...base.clouds,opticalDepth:0}}),[base,astronomy.distanceAU,cloudsOn]);
- const options=useMemo(()=>({sunElevDeg:astronomy.sunElevDeg,sunAzDeg:astronomy.sunAzDeg,aerosolScale:dustOn?aerosol:0,absorptionOn:absorption,eyeAdapted:eye,exposure}),[astronomy.sunElevDeg,astronomy.sunAzDeg,dustOn,aerosol,absorption,eye,exposure]);
+ const options=useMemo(()=>({sunElevDeg:astronomy.sunElevDeg,sunAzDeg:astronomy.sunAzDeg,aerosolScale:dustOn?aerosol:0,absorptionOn:absorption,eyeAdapted:eye,exposure,refractionOn:refraction}),[astronomy.sunElevDeg,astronomy.sunAzDeg,dustOn,aerosol,absorption,eye,exposure,refraction]);
  const state=useMemo(()=>computeSky(world,options),[world,options]);
  const transport=useTransport(world,options);
  const renderedWorld=transport.completed?.world??world;
@@ -60,11 +61,11 @@ export default function App(){
    <div className="flex flex-col items-end gap-2"><Hud view={view}/><div className="pointer-events-auto flex flex-wrap justify-end gap-1">
     <button className={button} onClick={()=>setEditorOpen(true)}>Customise</button>
     <button className={button} onClick={()=>{setWorldsOpen(x=>!x);if(window.innerWidth<640)setDisplayOpen(false);}}>Worlds</button><button className={button} onClick={()=>{setDisplayOpen(x=>!x);if(window.innerWidth<640)setWorldsOpen(false);}}>Display</button>
-    <button className={button} onClick={()=>setView(v=>({...v,yawDeg:sky.sunAzDeg,pitchDeg:Math.max(3,sky.sunElevDeg),fisheye:false}))}>Face star</button>
+    <button className={button} onClick={()=>setView(v=>({...v,yawDeg:sky.sunAzDeg,pitchDeg:Math.max(3,sky.sunApparentElevDeg??sky.sunElevDeg),fisheye:false}))}>Face star</button>
    </div></div>
   </div>
   <div className="absolute left-3 top-56 sm:top-40"><WorldPanel worldId={base.id} customWorld={customWorld} onSelect={selectWorld} open={worldsOpen} onToggle={()=>setWorldsOpen(false)}/></div>
-  {displayOpen&&<div className="absolute right-3 top-56 sm:top-32"><DisplayPanel calculating={transport.busy} world={world} sky={sky} aerosol={aerosol} dustOn={dustOn} cloudsOn={cloudsOn} absorption={absorption} eye={eye} exposure={exposure} fisheye={view.fisheye} terrain={view.terrain} teleOpen={teleOpen} onAerosol={setAerosol} onDust={setDustOn} onClouds={setCloudsOn} onAbsorption={setAbsorption} onEye={setEye} onExposure={setExposure} onFisheye={fisheye=>setView(v=>({...v,fisheye}))} onTerrain={terrain=>setView(v=>({...v,terrain}))} onTele={()=>setTeleOpen(x=>!x)}/></div>}
+  {displayOpen&&<div className="absolute right-3 top-56 sm:top-32"><DisplayPanel calculating={transport.busy} world={world} sky={sky} aerosol={aerosol} dustOn={dustOn} cloudsOn={cloudsOn} absorption={absorption} refraction={refraction} eye={eye} exposure={exposure} fisheye={view.fisheye} terrain={view.terrain} teleOpen={teleOpen} onAerosol={setAerosol} onDust={setDustOn} onClouds={setCloudsOn} onAbsorption={setAbsorption} onRefraction={setRefraction} onEye={setEye} onExposure={setExposure} onFisheye={fisheye=>setView(v=>({...v,fisheye}))} onTerrain={terrain=>setView(v=>({...v,terrain}))} onTele={()=>setTeleOpen(x=>!x)}/></div>}
   <section aria-label="Observation" className="absolute bottom-3 left-1/2 w-[min(96vw,780px)] -translate-x-1/2 rounded-lg border border-white/10 bg-neutral-950/90 px-3 py-2 backdrop-blur">
    <div className="mb-2 flex flex-wrap items-center gap-3 text-[11px]">
     <label>Geometry <select aria-label="Geometry mode" className="ml-1 rounded bg-neutral-800 p-1" value={observation.mode} onChange={e=>{setPlay(false);setObservation(o=>({...o,mode:e.target.value as Observation['mode']}));}}><option value="manual">Manual stellar position</option>{astronomy.hasEphemeris&&<option value="ephemeris">Date and location</option>}</select></label>
@@ -74,7 +75,7 @@ export default function App(){
    </div>
    {observation.mode==='manual'?<div className="grid grid-cols-2 gap-6"><Slider label="Stellar elevation (geometric)" value={sunElev} min={-90} max={90} step={.25} unit="°" onChange={setSunElev}/><Slider label="Stellar azimuth" value={sunAz} min={0} max={360} step={1} unit="°" onChange={setSunAz}/></div>:<div className="flex items-center gap-4 text-xs"><span>Star {sky.sunElevDeg.toFixed(2)}° elevation · {sky.sunAzDeg.toFixed(2)}° azimuth</span><button className={button} onClick={()=>setPlay(x=>!x)}>{play?'Pause':'Advance time'}</button><span className="text-[10px] text-neutral-400">10 simulated minutes / 3 seconds</span></div>}
    <p className="text-[10px] text-neutral-400">{observation.mode==='manual'?'Manual illumination; date and location orient catalogue stars and companions. ':''}{astronomy.note}</p>
-   <p className="mt-1 text-center text-[10px] text-neutral-500">Drag to look · scroll to zoom · geometric horizon · terrain is illustrative</p>
+   <p className="mt-1 text-center text-[10px] text-neutral-500">Drag to look · scroll to zoom · {refraction?'apparent view / geometric stellar coordinates':'geometric rays'} · terrain is illustrative</p>
   </section>
   {editorOpen&&<WorldEditor initialDraft={worldId===CUSTOM_WORLD_ID&&customDraft?customDraft:draftFromWorld(base)} onApply={applyCustomWorld} onClose={()=>setEditorOpen(false)}/>}
  </div>;

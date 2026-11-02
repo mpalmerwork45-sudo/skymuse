@@ -1,5 +1,6 @@
 import { WORLDS, type GasMix, type StarSpec, type WorldSpec } from './worlds';
 import { AU_KM, SUN_KM, stellarLuminosity } from './spectrum';
+import { gasLorentzFactor } from './refraction';
 
 export const CUSTOM_WORLD_ID = 'custom';
 export const CUSTOM_STORAGE_KEY = 'skymuse.custom-world.v1';
@@ -189,6 +190,9 @@ export function resolveCustomWorld(draft: CustomWorldDraft): CustomWorldResult {
     errors.densityKgM3 = 'This density gives a pressure above the editor’s 300 bar limit. Lower the density or temperature.';
   }
   const scaleHeightKm = GAS_CONSTANT * temperatureK / ((molarMass || 28.97) * gravityMs2);
+  if(Number.isFinite(pressureBar)&&gasLorentzFactor({pressureBar,temperatureK,gases})>=.95){
+    errors[draft.densityMode==='density'?'densityKgM3':'pressureBar']='These density, temperature and composition settings exceed the supported gas refractivity range.';
+  }
   if (setting > 0 && Number.isFinite(scaleHeightKm) && (scaleHeightKm < .1 || scaleHeightKm > 1000 || scaleHeightKm > radiusKm / 4)) {
     errors.temperatureK ??= 'These temperature, composition and gravity settings give an atmosphere outside the supported scale-height range (0.1–1000 km, at most ¼ of the planet radius).';
   }

@@ -102,3 +102,51 @@ test('strong refractive gradients produce returning rays without a fabricated ce
   close(m.length(trapped.exitPoint),g.radius,1e-8);
   assert.equal(m.traceRefractedRay(g,p,[0,1,0],128).ground,false);
 });
+
+test('observer angular maps agree with direct primary-ray lookup and conserve the zenith flux limit', () => {
+  const w=world('earth'),lookup=m.observerRayLookup(w),view=lookup.view;
+  for(const elevation of [-.3,0,1,10,30,85,90]){
+    const dir=m.direction(140,elevation),direct=lookup.sample(dir),mapped=m.refractSource(view,dir);
+    assert.ok(direct&&mapped);
+    close(m.length(m.sub(direct.direction,mapped.direction)),0,2e-5);
+    close(mapped.focusing/direct.focusing,1,.005);
+    assert.ok(mapped.columns.every(c=>Number.isFinite(c)&&c>=0));
+  }
+  close(lookup.sample([0,1,0]).focusing,1,.0001);
+  assert.equal(lookup.sample([0,-1,0]),null);
+});
+
+test('refraction illuminates a partially risen star below the geometric horizon', () => {
+  const options={sunElevDeg:-.4,sunAzDeg:90,aerosolScale:1,absorptionOn:true,eyeAdapted:false,exposure:1};
+  const off=m.computeSky(world('earth'),{...options,refractionOn:false});
+  const on=m.computeSky(world('earth'),{...options,refractionOn:true});
+  assert.equal(off.directLux,0);
+  assert.ok(on.directLux>.001);
+  assert.ok(on.sunApparentElevDeg>0);
+  assert.equal(off.sunApparentElevDeg,null);
+  assert.ok(on.refraction.gain>1);
+});
+
+test('stellar image flattening follows the same geometry as its illumination', () => {
+  const lookup=m.observerRayLookup(world('earth')),radius=.266*Math.PI/180;
+  const lower=lookup.sample(m.direction(90,-radius/m.DEG)),upper=lookup.sample(m.direction(90,radius/m.DEG));
+  const height=Math.asin(upper.direction[1])-Math.asin(lower.direction[1]);
+  assert.ok(height/(2*radius)>.65&&height/(2*radius)<.95);
+  const w=world('moon'),vacuum=m.observerRayLookup(w);
+  for(const e of [0,1,45,90]){
+    const dir=m.direction(45,e),source=vacuum.sample(dir);
+    close(source.focusing,1,1e-10);
+    close(m.length(m.sub(source.direction,dir)),0,1e-10);
+  }
+});
+
+test('curved viewing columns resolve the longer grazing path and match their density quadrature', () => {
+  const w=world('earth'),g=m.atmosphereGeometry(w),straight=m.atmosphereGeometry(w,false),p=[0,g.radius+.0017,0],d=[1,0,0];
+  const curved=m.pathColumns(g,p,d,128),clear=m.pathColumns(straight,p,d,512);
+  assert.ok(curved[0]>clear[0]*1.08);
+  const ray=m.traceRefractedRay(g,p,d,128),integral=[0,0,0,0];
+  for(const node of ray.nodes)for(const sample of node.samples){
+    const rho=m.densities(g,sample.height);for(let k=0;k<4;k++)integral[k]+=rho[k]*sample.ds;
+  }
+  for(let k=0;k<4;k++)close(curved[k],integral[k],1e-8);
+});

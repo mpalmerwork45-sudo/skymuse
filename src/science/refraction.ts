@@ -115,6 +115,10 @@ export function traceRefractedRay(g: RefractiveProfile, origin: Vec3, apparentDi
   const tangent = length(horizontal) > 1e-12 ? unit(horizontal) : unit(cross(up, Math.abs(up[0]) < .9 ? [1,0,0] : [0,0,1]));
   const invariant = nr(g, r0) * Math.sqrt(Math.max(0, 1 - mu*mu));
   const critical = criticalRadius(g), outer = g.radius + g.top;
+  if (r0 >= outer - 1e-8 && mu >= 0) return {
+    nodes: [], ground: false, distance: 0, exitDirection: d0, exitPoint: origin,
+    geometricElevation: Math.asin(mu), invariant,
+  };
   let ground = false;
   const legs: [number, number][] = [];
   if (mu < 0) {

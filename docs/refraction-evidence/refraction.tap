@@ -1,0 +1,60 @@
+TAP version 13
+# Subtest: reference refractivity follows composition and ideal molecular density
+ok 1 - reference refractivity follows composition and ideal molecular density
+  ---
+  duration_ms: 0.876193
+  ...
+# Subtest: spherical radial quadrature reduces to the straight-ray solution in vacuum
+ok 2 - spherical radial quadrature reduces to the straight-ray solution in vacuum
+  ---
+  duration_ms: 4.418236
+  ...
+# Subtest: Bouguer invariant and unit direction are preserved along every curved ray segment
+ok 3 - Bouguer invariant and unit direction are preserved along every curved ray segment
+  ---
+  duration_ms: 7.400315
+  ...
+# Subtest: radial refraction agrees with independent Cartesian integration
+ok 4 - radial refraction agrees with independent Cartesian integration
+  ---
+  duration_ms: 27.120404
+  ...
+# Subtest: Earth refraction lifts horizon sources and approaches the plane-parallel limit at altitude
+ok 5 - Earth refraction lifts horizon sources and approaches the plane-parallel limit at altitude
+  ---
+  duration_ms: 0.423283
+  ...
+# Subtest: strong refractive gradients produce returning rays without a fabricated celestial horizon
+ok 6 - strong refractive gradients produce returning rays without a fabricated celestial horizon
+  ---
+  duration_ms: 0.908203
+  ...
+# Subtest: observer angular maps agree with direct primary-ray lookup and conserve the zenith flux limit
+ok 7 - observer angular maps agree with direct primary-ray lookup and conserve the zenith flux limit
+  ---
+  duration_ms: 64.781845
+  ...
+# Subtest: refraction illuminates a partially risen star below the geometric horizon
+ok 8 - refraction illuminates a partially risen star below the geometric horizon
+  ---
+  duration_ms: 47.865297
+  ...
+# Subtest: stellar image flattening follows the same geometry as its illumination
+ok 9 - stellar image flattening follows the same geometry as its illumination
+  ---
+  duration_ms: 3.810853
+  ...
+# Subtest: curved viewing columns resolve the longer grazing path and match their density quadrature
+ok 10 - curved viewing columns resolve the longer grazing path and match their density quadrature
+  ---
+  duration_ms: 0.850173
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 168.135919

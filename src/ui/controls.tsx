@@ -135,7 +135,7 @@ export function WorldPanel(props: { worldId: string; customWorld?: WorldSpec; on
 }
 
 
-export function DisplayPanel(p:{calculating:boolean;world:WorldSpec;sky:SkyState;aerosol:number;dustOn:boolean;cloudsOn:boolean;absorption:boolean;eye:boolean;exposure:number;fisheye:boolean;terrain:boolean;teleOpen:boolean;onAerosol:(v:number)=>void;onDust:(v:boolean)=>void;onClouds:(v:boolean)=>void;onAbsorption:(v:boolean)=>void;onEye:(v:boolean)=>void;onExposure:(v:number)=>void;onFisheye:(v:boolean)=>void;onTerrain:(v:boolean)=>void;onTele:()=>void}) {
+export function DisplayPanel(p:{calculating:boolean;world:WorldSpec;sky:SkyState;aerosol:number;dustOn:boolean;cloudsOn:boolean;absorption:boolean;refraction:boolean;eye:boolean;exposure:number;fisheye:boolean;terrain:boolean;teleOpen:boolean;onAerosol:(v:number)=>void;onDust:(v:boolean)=>void;onClouds:(v:boolean)=>void;onAbsorption:(v:boolean)=>void;onRefraction:(v:boolean)=>void;onEye:(v:boolean)=>void;onExposure:(v:number)=>void;onFisheye:(v:boolean)=>void;onTerrain:(v:boolean)=>void;onTele:()=>void}) {
  const s=p.sky;
  return <Panel title="ATMOSPHERE & DISPLAY" className="w-64 max-h-[60vh] overflow-y-auto">
   <div className="mb-2 flex gap-1">{[[true,'Adapted display'],[false,'Fixed camera']].map(([value,label])=><button key={String(label)} className={`rounded px-2 py-1 text-xs ${p.eye===value?'bg-amber-400/20 text-amber-100':'text-neutral-400'}`} onClick={()=>p.onEye(value as boolean)}>{label}</button>)}</div>
@@ -145,6 +145,7 @@ export function DisplayPanel(p:{calculating:boolean;world:WorldSpec;sky:SkyState
   <Slider label="Aerosol column" value={p.aerosol} min={0} max={4} step={.05} unit="×" onChange={p.onAerosol}/>
   <Toggle label="Prescribed cloud layer" checked={p.cloudsOn} onChange={p.onClouds}/>
   <Toggle label="Methane / ozone absorption" checked={p.absorption} onChange={p.onAbsorption}/>
+  <Toggle label="Atmospheric refraction" checked={p.refraction} onChange={p.onRefraction}/>
   <Toggle label="180° equidistant fisheye" checked={p.fisheye} onChange={p.onFisheye}/>
   <Toggle label="Illustrative terrain" checked={p.terrain} onChange={p.onTerrain}/>
   <button className="mt-2 w-full border-t border-white/10 pt-2 text-left text-xs" aria-expanded={p.teleOpen} onClick={p.onTele}>Physics {p.teleOpen?'−':'+'}</button>
@@ -156,6 +157,7 @@ export function DisplayPanel(p:{calculating:boolean;world:WorldSpec;sky:SkyState
    ['Bolometric stellar flux',`${s.fluxWm2.toPrecision(4)} W/m²`],['Direct horizontal',`${s.directLux.toPrecision(3)} lx`],
    ['Diffuse horizontal',`${s.diffuseLux.toPrecision(3)} lx`],['Total horizontal',`${s.lux.toPrecision(4)} lx`],
    ['Stellar diameter',`${s.starAngularDeg.toFixed(3)}°`],
+   ['Star true / apparent elevation',`${s.sunElevDeg.toFixed(2)}° / ${s.sunApparentElevDeg===null?'centre occluded':s.sunApparentElevDeg.toFixed(2)+'°'}`],
    ...(p.world.habitableZone ? [
     ['Goldilocks zone',`${p.world.habitableZone.innerAU.toFixed(3)}–${p.world.habitableZone.outerAU.toFixed(3)} AU`],
     ['Energy vs Earth',`${(s.fluxRel * 100).toFixed(0)}%`],
@@ -163,7 +165,7 @@ export function DisplayPanel(p:{calculating:boolean;world:WorldSpec;sky:SkyState
   ].map(([name,value])=><div className="flex justify-between gap-2" key={name}><dt className="text-neutral-400">{name}</dt><dd className="font-mono text-neutral-200">{p.calculating?'…':value}</dd></div>)}</dl>}
   <details className="mt-3 text-[10px] text-neutral-400"><summary className="cursor-pointer text-amber-100">Evidence and model limits</summary>
    <p className="my-2 text-neutral-200">{p.world.provenance.status}</p><p>{p.world.provenance.assumptions}</p>
-   <p className="my-2">48 spectral bands; spherical single scattering and approximate hemispheric multiple scattering. Geometric rays: atmospheric refraction is omitted. Stellar catalogue is incomplete, especially from distant systems. Diffuse Milky Way, airglow and weather are not reconstructed.</p>
+   <p className="my-2">48 spectral bands; spherical primary-ray refraction and single scattering, with approximate hemispheric multiple scattering. Refraction uses a single reference wavelength and prescribed density profiles. Stellar catalogue is incomplete, especially from distant systems. Diffuse Milky Way, airglow and weather are not reconstructed.</p>
    {p.world.provenance.sources.map(source=><a key={source.url} className="my-1 block underline" href={source.url} target="_blank" rel="noreferrer">{source.label}</a>)}
    <a className="my-2 block underline text-amber-100" href={modelNotesUrl} target="_blank" rel="noreferrer">Full model notes, sources and limitations</a>
    <a className="block underline" href="https://github.com/astronexus/HYG-Database" target="_blank" rel="noreferrer">Star data: HYG / David Nash · CC BY-SA 4.0</a>

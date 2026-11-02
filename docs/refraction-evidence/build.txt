@@ -1,0 +1,20 @@
+
+> skymuse@0.1.0 build
+> tsc && vite build
+
+vite v6.4.3 building for production...
+transforming...
+✓ 51 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                          0.46 kB │ gzip:   0.30 kB
+dist/assets/sky.worker-DzEomAIS.js      23.76 kB
+dist/assets/science-model-BA0zqDki.md   25.70 kB
+dist/assets/index-oBlXFPce.css          14.49 kB │ gzip:   3.64 kB
+dist/assets/index-a0OxvuXG.js          766.80 kB │ gzip: 223.52 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 2.46s

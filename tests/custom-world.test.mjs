@@ -174,3 +174,12 @@ test('custom surface tints retain the requested reflected energy, including blac
     }
   }
 });
+
+test('an unsupported refractive density is rejected before the renderer receives the world', () => {
+  const draft=initial();
+  draft.gases=Object.fromEntries(Object.keys(draft.gases).map(key=>[key,key==='so2'?'100':'0']));
+  draft.pressureBar='300';draft.temperatureK='20';draft.gravityMs2='0.1';
+  const result=m.resolveCustomWorld(draft);
+  assert.equal(result.world,undefined);
+  assert.match(result.errors.pressureBar,/refractivity range/);
+});

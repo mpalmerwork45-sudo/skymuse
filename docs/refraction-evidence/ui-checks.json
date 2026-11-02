@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "checks": [
+    "Refraction defaults on; toggle, geometric input, apparent elevation and occluded-centre telemetry agree",
+    "Both presets appear directly under Earth",
+    "Earth with K Dwarf renders with 80% Earth energy and correct zone telemetry",
+    "Earth with M Dwarf renders with 80% Earth energy and correct zone telemetry",
+    "Dwarf variants work as custom-world starting points",
+    "Earth variants are selectable on mobile"
+  ],
+  "errors": []
+}

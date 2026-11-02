@@ -1,0 +1,80 @@
+TAP version 13
+# Subtest: every preset is a valid starting point, including airless and giant worlds
+ok 1 - every preset is a valid starting point, including airless and giant worlds
+  ---
+  duration_ms: 2.52899
+  ...
+# Subtest: customisation leaves the original preset intact and removes its named satellites/rings
+ok 2 - customisation leaves the original preset intact and removes its named satellites/rings
+  ---
+  duration_ms: 1.750172
+  ...
+# Subtest: choosing orbital distance changes irradiance and stellar size through the real sky model
+ok 3 - choosing orbital distance changes irradiance and stellar size through the real sky model
+  ---
+  duration_ms: 112.024291
+  ...
+# Subtest: density input gives the nitrogen STP reference and changes the optical column
+ok 4 - density input gives the nitrogen STP reference and changes the optical column
+  ---
+  duration_ms: 54.754302
+  ...
+# Subtest: temperature has the correct independent effect in pressure and density modes
+ok 5 - temperature has the correct independent effect in pressure and density modes
+  ---
+  duration_ms: 0.333343
+  ...
+# Subtest: gas composition consistently changes molecular mass, density, scale height and scattering
+ok 6 - gas composition consistently changes molecular mass, density, scale height and scattering
+  ---
+  duration_ms: 50.107694
+  ...
+# Subtest: custom stars use their own spectrum even if a user names one Sol
+ok 7 - custom stars use their own spectrum even if a user names one Sol
+  ---
+  duration_ms: 25.036168
+  ...
+# Subtest: known stellar choices preserve the catalogue observer host when the planet is custom
+ok 8 - known stellar choices preserve the catalogue observer host when the planet is custom
+  ---
+  duration_ms: 0.297244
+  ...
+# Subtest: invalid atmospheres and overlapping orbits cannot reach the renderer
+ok 9 - invalid atmospheres and overlapping orbits cannot reach the renderer
+  ---
+  duration_ms: 0.438272
+  ...
+# Subtest: normalizing arbitrary positive gas proportions produces a usable mixture
+ok 10 - normalizing arbitrary positive gas proportions produces a usable mixture
+  ---
+  duration_ms: 0.408395
+  ...
+# Subtest: zero density means vacuum, including no leftover haze, ozone or clouds
+ok 11 - zero density means vacuum, including no leftover haze, ozone or clouds
+  ---
+  duration_ms: 256.691396
+  ...
+# Subtest: saved custom settings round-trip and malformed or stale browser data are rejected
+ok 12 - saved custom settings round-trip and malformed or stale browser data are rejected
+  ---
+  duration_ms: 0.657338
+  ...
+# Subtest: custom surface tints retain the requested reflected energy, including black and saturated colours
+ok 13 - custom surface tints retain the requested reflected energy, including black and saturated colours
+  ---
+  duration_ms: 0.607312
+  ...
+# Subtest: an unsupported refractive density is rejected before the renderer receives the world
+ok 14 - an unsupported refractive density is rejected before the renderer receives the world
+  ---
+  duration_ms: 0.28473
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 539.752601

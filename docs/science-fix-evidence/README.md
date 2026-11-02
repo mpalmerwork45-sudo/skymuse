@@ -1,6 +1,6 @@
 # Verification of the spectral rewrite
 
-These results describe the current physical renderer. The sibling `science-audit-evidence` directory is the preserved pre-fix baseline.
+These results describe the initial spectral rewrite, before the two Earth dwarf comparisons and atmospheric refraction were added. Later checks are in [`../refraction-evidence/`](../refraction-evidence/). The sibling `science-audit-evidence` directory is the preserved pre-fix baseline.
 
 - `numerical-checks.tap`: direct Node test output from `node tests/atmosphere.test.mjs`.
 - `render-checks.json`: 11 production-shader checks, including floating-point radiance and integrated angular flux, captured from `/tests/sky-render.html` in headless Chrome with SwiftShader.

@@ -7,7 +7,7 @@ export function useTransport(world:WorldSpec,options:SkyOptions){
  const [completed,setCompleted]=useState<{result:TransportResult;world:WorldSpec;options:SkyOptions;key:string}|null>(null),[busy,setBusy]=useState(true),[error,setError]=useState<string|null>(null);
  const worker=useRef<Worker|null>(null),serial=useRef(0),running=useRef(false),pending=useRef<{id:number;world:WorldSpec;options:SkyOptions;key:string}|null>(null);
  const active=useRef<{world:WorldSpec;options:SkyOptions;key:string}|null>(null);
- const key=JSON.stringify([world,options.sunElevDeg,options.sunAzDeg,options.aerosolScale,options.absorptionOn,options.observerHeightKm]);
+ const key=JSON.stringify([world,options.sunElevDeg,options.sunAzDeg,options.aerosolScale,options.absorptionOn,options.observerHeightKm,options.refractionOn]);
  useEffect(()=>{
   const w=new Worker(new URL('./sky.worker.ts',import.meta.url),{type:'module'});worker.current=w;
   const send=()=>{if(pending.current){active.current=pending.current;w.postMessage(pending.current);pending.current=null;running.current=true;}};

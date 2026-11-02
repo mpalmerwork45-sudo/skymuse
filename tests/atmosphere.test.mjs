@@ -55,7 +55,7 @@ test('methane follows molecule column, band structure and measured temperature i
  const vacuum=sky({...w,pressureBar:0});close(vacuum.tauA.g,0);
 });
 test('spherical horizon columns depend on radius and scale height',()=>{
- const g=m.atmosphereGeometry(earth),p=[0,g.radius+.0017,0];
+ const g=m.atmosphereGeometry(earth,false),p=[0,g.radius+.0017,0];
  const vertical=m.pathColumns(g,p,[0,1,0],512)[0],horizontal=m.pathColumns(g,p,[1,0,0],512)[0];
  relative(vertical,Math.exp(-.0017/g.gasH),.0002);
  // Chapman tangent-path asymptote for H/R << 1.

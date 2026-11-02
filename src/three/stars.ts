@@ -6,6 +6,7 @@ import type { TransportResult } from '../science/transport';
 import { BANDS,NM,rgb,xyz,planck,temperatureBV,type Vec3 } from '../science/spectrum';
 import { sub,scale,add,length,dot,DEG } from '../science/geometry';
 import { opticalDepth } from '../science/atmosphere';
+import { refractSource } from '../science/geometry';
 import HOSTS from '../science/data/hosts.json';
 import { projectionGLSL } from './skyShader';
 
@@ -32,13 +33,11 @@ export function starAttributes(rows:StarRow[],w:WorldSpec,s:SkyState,a:Astronomy
   const positions:number[]=[],colours:number[]=[];
   const addStar=(position:Vec3,flux:number,bv:number)=>{
     const local:Vec3=[dot(position,a.east),dot(position,a.up),-dot(position,a.north)],dist=length(local),dir=scale(local,1/dist);
-    if(dir[1]<0)return;
-    const v=Math.sqrt(Math.asin(dir[1])/(Math.PI/2))*(t.height-1),lo=Math.min(t.height-2,Math.floor(v)),f=v-lo;
-    const cols=[0,1,2,3].map(k=>t.columns[lo*4+k]*(1-f)+t.columns[(lo+1)*4+k]*f) as [number,number,number,number];
-    const sp=starSpectrum(bv),trans=Float64Array.from({length:BANDS},(_,i)=>sp[i]*flux*Math.exp(-opticalDepth(s.optics,i,cols)));
+    const source=refractSource(s.refraction,dir);if(!source)return;
+    const sp=starSpectrum(bv),trans=Float64Array.from({length:BANDS},(_,i)=>sp[i]*flux*source.focusing*Math.exp(-opticalDepth(s.optics,i,source.columns)));
     const colour=rgb(trans);
     if(xyz(trans)[1]<1e-13)return;
-    positions.push(...dir);colours.push(...colour);
+    positions.push(...source.direction);colours.push(...colour);
   };
   for(const row of rows) {
     const old:Vec3=[row[1],row[2],row[3]],pos=add(old,scale([row[4],row[5],row[6]],years));
