@@ -1,0 +1,26 @@
+[
+  {
+    "dataset": "CIE XYZ",
+    "url": "https://files.cie.co.at/Publications-datasets/CIE_xyz_1931_2deg.csv",
+    "retrieved": "2026-10-30",
+    "sha256": "fa663e3535a7e0763a745993a1f0a192eb0275ac46ad2d1befd7626841e713c1"
+  },
+  {
+    "dataset": "Solar and ozone numeric tables",
+    "url": "https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/demo/demo.cc.html",
+    "retrieved": "2026-10-30",
+    "sha256": "7e3659cdd8c23feca988b49801029e36e201ff0701e693fee2069b441ffa40d2"
+  },
+  {
+    "dataset": "Methane numeric table",
+    "url": "https://raw.githubusercontent.com/natashabatalha/picaso/master/reference/opacities/KarkCH4TempDependent.csv",
+    "retrieved": "2026-10-30",
+    "sha256": "4a1dc7157ed1b8563b0a483fd28d0d28e29b899ec3dd192db8fae808e4ed8d20"
+  },
+  {
+    "dataset": "HYG v4.0",
+    "url": "https://raw.githubusercontent.com/astronexus/HYG-Database/main/hyg/CURRENT/hygdata_v40.csv.gz",
+    "retrieved": "2026-10-30",
+    "sha256": "8e3ff9e67445e558a759b117910850cff1b1d4d492f45f715c2ee2db3d869bac"
+  }
+]

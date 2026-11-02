@@ -1,0 +1,94 @@
+{
+  "result": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "GPU resolved stellar radiance is independent of distance",
+        "passed": true,
+        "detail": {
+          "disc1": 2131366784,
+          "disc2": 2131366784
+        }
+      },
+      {
+        "name": "Unresolved stellar disc conserves inverse-square angular flux",
+        "passed": true,
+        "detail": {
+          "energyA": 358.3442235021137,
+          "energyB": 89.58605587552843
+        }
+      },
+      {
+        "name": "Actual fisheye places a horizon star on the rim",
+        "passed": true,
+        "detail": {
+          "centre": 0,
+          "rim": 429255572.3647404
+        }
+      },
+      {
+        "name": "Earth daylight side sky is spectrally blue",
+        "passed": true,
+        "detail": [
+          1975.78173828125,
+          2932.499755859375,
+          4597.29638671875,
+          0
+        ]
+      },
+      {
+        "name": "Opaque Venus clouds remove the direct stellar image",
+        "passed": true,
+        "detail": {
+          "centreVenus": [
+            858.6233520507812,
+            25.289915084838867,
+            -19.68755340576172,
+            0.9756590127944946
+          ],
+          "leftVenus": [
+            851.8372192382812,
+            24.987186431884766,
+            -19.52080535888672,
+            0
+          ]
+        }
+      },
+      {
+        "name": "Companion phase follows stellar illumination, with no positive night-light floor",
+        "passed": true,
+        "detail": {
+          "lit": 13785.1298828125,
+          "dark": 0
+        }
+      },
+      {
+        "name": "Foreground absorption extinguishes a bright companion",
+        "passed": true,
+        "detail": {
+          "obscured": 0
+        }
+      },
+      {
+        "name": "Catalogue starlight is attenuated by the atmosphere",
+        "passed": true
+      },
+      {
+        "name": "WASP partial-disc setting remains illuminated",
+        "passed": true,
+        "detail": 12214461.136245023
+      },
+      {
+        "name": "Shaders compile and link",
+        "passed": true,
+        "detail": []
+      },
+      {
+        "name": "No WebGL errors",
+        "passed": true
+      }
+    ],
+    "errors": []
+  },
+  "errors": []
+}

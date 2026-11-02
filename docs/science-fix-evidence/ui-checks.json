@@ -1,0 +1,29 @@
+{
+  "results": [
+    {
+      "name": "Moon",
+      "ok": true,
+      "physics": "Radius / gas scale height\n1,737.4 / 0 km\nRayleigh τ at 550 nm\n0.0000\nAbsorption τ at 550 nm\n0.0000\nCloud extinction τ\n0.0\nOzone column\n0 DU\nBolometric stellar flux\n1361 W/m²\nDirect horizontal\n4.63e+3 lx\nDiffuse horizontal\n0.00 lx\nTotal horizontal\n4626 lx\nStellar diameter\n0.533°"
+    },
+    {
+      "name": "Venus",
+      "ok": true,
+      "physics": "Radius / gas scale height\n6,051.8 / 15.9 km\nRayleigh τ at 550 nm\n15.2878\nAbsorption τ at 550 nm\n0.0000\nCloud extinction τ\n30.0\nOzone column\n0 DU\nBolometric stellar flux\n2604 W/m²\nDirect horizontal\n3.55e-128 lx\nDiffuse horizontal\n34.6 lx\nTotal horizontal\n34.60 lx\nStellar diameter\n0.737°"
+    },
+    {
+      "name": "Saturn",
+      "ok": true,
+      "physics": "Radius / gas scale height\n60,268 / 59.5 km\nRayleigh τ at 550 nm\n0.2402\nAbsorption τ at 550 nm\n0.0064\nCloud extinction τ\n3.0\nOzone column\n0 DU\nBolometric stellar flux\n14.83 W/m²\nDirect horizontal\n1.25e-32 lx\nDiffuse horizontal\n19.8 lx\nTotal horizontal\n19.83 lx\nStellar diameter\n0.056°"
+    },
+    {
+      "name": "WASP-12b (hot Jupiter)",
+      "ok": true,
+      "physics": "Radius / gas scale height\n128,000 / 300 km\nRayleigh τ at 550 nm\n0.1809\nAbsorption τ at 550 nm\n0.0000\nCloud extinction τ\n1.0\nOzone column\n0 DU\nBolometric stellar flux\n9.079e+6 W/m²\nDirect horizontal\n1.17e+5 lx\nDiffuse horizontal\n2.33e+7 lx\nTotal horizontal\n2.343e+7 lx\nStellar diameter\n37.185°"
+    },
+    {
+      "name": "Ephemeris controls",
+      "ok": true
+    }
+  ],
+  "errors": []
+}

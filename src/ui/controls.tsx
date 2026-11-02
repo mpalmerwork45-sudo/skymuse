@@ -6,6 +6,8 @@ import type { ReactNode } from 'react';
 import { WORLD_GROUPS, WORLDS, type WorldSpec } from '../science/worlds';
 import type { SkyState } from '../science/atmosphere';
 import type { ViewState } from '../three/SkyView';
+import modelNotesUrl from '../../docs/science-model.md?url';
+import { idealGasDensity } from '../science/customWorld';
 
 /* ---------- primitives ---------- */
 
@@ -79,7 +81,7 @@ export function Panel(props: { title: string; action?: ReactNode; children: Reac
 
 /* ---------- world picker ---------- */
 
-export function WorldPanel(props: { worldId: string; onSelect: (id: string) => void; open: boolean; onToggle: () => void }) {
+export function WorldPanel(props: { worldId: string; customWorld?: WorldSpec; onSelect: (id: string) => void; open: boolean; onToggle: () => void }) {
   if (!props.open) return null;
   return (
     <Panel
@@ -91,7 +93,14 @@ export function WorldPanel(props: { worldId: string; onSelect: (id: string) => v
         </button>
       }
     >
-      {WORLD_GROUPS.map((g) => (
+      {props.customWorld && <div className="mb-3">
+        <h3 className="mb-1 text-[10px] font-semibold tracking-widest text-neutral-500">YOUR WORLD</h3>
+        <button type="button" onClick={() => props.onSelect(props.customWorld!.id)}
+          className={`w-full rounded px-2 py-1 text-left text-xs ${props.worldId === props.customWorld.id ? 'bg-amber-400/20 text-amber-100' : 'text-neutral-300 hover:bg-white/5'}`}>
+          {props.customWorld.name}
+        </button>
+      </div>}
+      {WORLD_GROUPS.filter(g => g !== 'Earth variants').map((g) => (
         <div key={g} className="mb-2">
           <h3 className="mb-1 text-[10px] font-semibold tracking-widest text-neutral-500">{g.toUpperCase()}</h3>
           <ul className="space-y-0.5">
@@ -108,6 +117,14 @@ export function WorldPanel(props: { worldId: string; onSelect: (id: string) => v
                 >
                   {w.name}
                 </button>
+                {w.id === 'earth' && <ul aria-label="Earth variants" className="mb-1 ml-3 border-l border-white/15 pl-2">
+                  {WORLDS.filter(variant => variant.group === 'Earth variants').map(variant => <li key={variant.id}>
+                    <button type="button" onClick={() => props.onSelect(variant.id)}
+                      className={`w-full rounded px-2 py-1 text-left text-xs ${props.worldId === variant.id ? 'bg-amber-400/20 text-amber-100' : 'text-neutral-300 hover:bg-white/5 hover:text-white'}`}>
+                      {variant.name}
+                    </button>
+                  </li>)}
+                </ul>}
               </li>
             ))}
           </ul>
@@ -117,188 +134,43 @@ export function WorldPanel(props: { worldId: string; onSelect: (id: string) => v
   );
 }
 
-/* ---------- solar ephemeris ---------- */
 
-export function SunBar(props: {
-  elev: number;
-  az: number;
-  anim: number;
-  onElev: (v: number) => void;
-  onAz: (v: number) => void;
-  onPreset: (kind: 'sunrise' | 'sunset' | 'stop') => void;
-}) {
-  return (
-    <div className="rounded-lg border border-white/10 bg-neutral-950/80 px-4 py-2 backdrop-blur">
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => props.onPreset('sunrise')}
-          className="rounded border border-white/10 px-2 py-1 text-xs text-neutral-200 hover:bg-white/10"
-          title="Animate dawn: sun climbs from -8° to +45°"
-        >
-          ▲ Sunrise
-        </button>
-        <button
-          type="button"
-          onClick={() => props.onPreset('sunset')}
-          className="rounded border border-white/10 px-2 py-1 text-xs text-neutral-200 hover:bg-white/10"
-          title="Animate dusk: sun sinks from +35° to -12°"
-        >
-          ▼ Sunset
-        </button>
-        {props.anim !== 0 && (
-          <button
-            type="button"
-            onClick={() => props.onPreset('stop')}
-            className="rounded border border-amber-400/40 px-2 py-1 text-xs text-amber-200 hover:bg-white/10"
-          >
-            ❚❚ Pause
-          </button>
-        )}
-        <div className="grid flex-1 grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2">
-          <Slider label="Sun elevation" value={props.elev} min={-15} max={85} step={0.5} unit="°" onChange={props.onElev} />
-          <Slider label="Sun azimuth" value={props.az} min={0} max={360} step={1} unit="°" onChange={props.onAz} />
-        </div>
-      </div>
-    </div>
-  );
+export function DisplayPanel(p:{calculating:boolean;world:WorldSpec;sky:SkyState;aerosol:number;dustOn:boolean;cloudsOn:boolean;absorption:boolean;eye:boolean;exposure:number;fisheye:boolean;terrain:boolean;teleOpen:boolean;onAerosol:(v:number)=>void;onDust:(v:boolean)=>void;onClouds:(v:boolean)=>void;onAbsorption:(v:boolean)=>void;onEye:(v:boolean)=>void;onExposure:(v:number)=>void;onFisheye:(v:boolean)=>void;onTerrain:(v:boolean)=>void;onTele:()=>void}) {
+ const s=p.sky;
+ return <Panel title="ATMOSPHERE & DISPLAY" className="w-64 max-h-[60vh] overflow-y-auto">
+  <div className="mb-2 flex gap-1">{[[true,'Adapted display'],[false,'Fixed camera']].map(([value,label])=><button key={String(label)} className={`rounded px-2 py-1 text-xs ${p.eye===value?'bg-amber-400/20 text-amber-100':'text-neutral-400'}`} onClick={()=>p.onEye(value as boolean)}>{label}</button>)}</div>
+  <p className="mb-2 text-[10px] text-neutral-400">Approximate visual adaptation on an SDR screen.</p>
+  <Slider label="Exposure" value={Math.log2(p.exposure)} min={-6} max={6} step={.25} display={`${Math.log2(p.exposure).toFixed(2)} stops`} onChange={v=>p.onExposure(2**v)}/>
+  <Toggle label="Haze / dust" checked={p.dustOn} onChange={p.onDust}/>
+  <Slider label="Aerosol column" value={p.aerosol} min={0} max={4} step={.05} unit="×" onChange={p.onAerosol}/>
+  <Toggle label="Prescribed cloud layer" checked={p.cloudsOn} onChange={p.onClouds}/>
+  <Toggle label="Methane / ozone absorption" checked={p.absorption} onChange={p.onAbsorption}/>
+  <Toggle label="180° equidistant fisheye" checked={p.fisheye} onChange={p.onFisheye}/>
+  <Toggle label="Illustrative terrain" checked={p.terrain} onChange={p.onTerrain}/>
+  <button className="mt-2 w-full border-t border-white/10 pt-2 text-left text-xs" aria-expanded={p.teleOpen} onClick={p.onTele}>Physics {p.teleOpen?'−':'+'}</button>
+  {p.teleOpen&&<dl className="mt-2 space-y-1 text-[10px]">{[
+   ['Radius / gas scale height',`${p.world.radiusKm.toLocaleString()} / ${p.world.scaleHeightKm.toPrecision(3)} km`],
+   ['Pressure / gas density',`${p.world.pressureBar.toPrecision(3)} bar / ${idealGasDensity(p.world.pressureBar,p.world.molarMass,p.world.temperatureK).toPrecision(3)} kg/m³`],
+   ['Rayleigh τ at 550 nm',s.tauR.g.toFixed(4)],['Absorption τ at 550 nm',s.tauA.g.toFixed(4)],
+   ['Cloud extinction τ',p.world.clouds.opticalDepth.toFixed(1)],['Ozone column',`${p.world.ozoneDU.toFixed(0)} DU`],
+   ['Bolometric stellar flux',`${s.fluxWm2.toPrecision(4)} W/m²`],['Direct horizontal',`${s.directLux.toPrecision(3)} lx`],
+   ['Diffuse horizontal',`${s.diffuseLux.toPrecision(3)} lx`],['Total horizontal',`${s.lux.toPrecision(4)} lx`],
+   ['Stellar diameter',`${s.starAngularDeg.toFixed(3)}°`],
+   ...(p.world.habitableZone ? [
+    ['Goldilocks zone',`${p.world.habitableZone.innerAU.toFixed(3)}–${p.world.habitableZone.outerAU.toFixed(3)} AU`],
+    ['Energy vs Earth',`${(s.fluxRel * 100).toFixed(0)}%`],
+   ] : []),
+  ].map(([name,value])=><div className="flex justify-between gap-2" key={name}><dt className="text-neutral-400">{name}</dt><dd className="font-mono text-neutral-200">{p.calculating?'…':value}</dd></div>)}</dl>}
+  <details className="mt-3 text-[10px] text-neutral-400"><summary className="cursor-pointer text-amber-100">Evidence and model limits</summary>
+   <p className="my-2 text-neutral-200">{p.world.provenance.status}</p><p>{p.world.provenance.assumptions}</p>
+   <p className="my-2">48 spectral bands; spherical single scattering and approximate hemispheric multiple scattering. Geometric rays: atmospheric refraction is omitted. Stellar catalogue is incomplete, especially from distant systems. Diffuse Milky Way, airglow and weather are not reconstructed.</p>
+   {p.world.provenance.sources.map(source=><a key={source.url} className="my-1 block underline" href={source.url} target="_blank" rel="noreferrer">{source.label}</a>)}
+   <a className="my-2 block underline text-amber-100" href={modelNotesUrl} target="_blank" rel="noreferrer">Full model notes, sources and limitations</a>
+   <a className="block underline" href="https://github.com/astronexus/HYG-Database" target="_blank" rel="noreferrer">Star data: HYG / David Nash · CC BY-SA 4.0</a>
+  </details>
+ </Panel>;
 }
-
-/* ---------- display + telemetry ---------- */
-
-function fmtLux(lux: number): string {
-  if (lux >= 10000) return `${Math.round(lux).toLocaleString('en-US')} lx`;
-  if (lux >= 10) return `${lux.toFixed(0)} lx`;
-  if (lux >= 0.01) return `${lux.toFixed(2)} lx`;
-  return `${lux.toExponential(1)} lx`;
-}
-
-function TeleRow(props: { k: string; v: string }) {
-  return (
-    <div className="flex items-baseline justify-between gap-2 py-px text-[11px]">
-      <span className="text-neutral-500">{props.k}</span>
-      <span className="font-mono text-neutral-200">{props.v}</span>
-    </div>
-  );
-}
-
-export function DisplayPanel(props: {
-  world: WorldSpec;
-  sky: SkyState;
-  aerosol: number;
-  dustOn: boolean;
-  cloudsOn: boolean;
-  absorption: boolean;
-  eye: boolean;
-  exposure: number;
-  fisheye: boolean;
-  teleOpen: boolean;
-  onAerosol: (v: number) => void;
-  onDust: (v: boolean) => void;
-  onClouds: (v: boolean) => void;
-  onAbsorption: (v: boolean) => void;
-  onEye: (v: boolean) => void;
-  onExposure: (v: number) => void;
-  onFisheye: (v: boolean) => void;
-  onTele: () => void;
-}) {
-  const { sky: s, world: w } = props;
-  return (
-    <Panel title="ATMOSPHERE & CAMERA" className="w-64">
-      <div className="mb-1 grid grid-cols-2 gap-1">
-        <button
-          type="button"
-          onClick={() => props.onEye(true)}
-          className={`rounded px-2 py-1 text-xs ${props.eye ? 'bg-amber-400/20 text-amber-100' : 'text-neutral-400 hover:bg-white/5'}`}
-        >
-          Human eye
-        </button>
-        <button
-          type="button"
-          onClick={() => props.onEye(false)}
-          className={`rounded px-2 py-1 text-xs ${!props.eye ? 'bg-amber-400/20 text-amber-100' : 'text-neutral-400 hover:bg-white/5'}`}
-        >
-          Fixed camera
-        </button>
-      </div>
-      <Slider label="Exposure" value={props.exposure} min={0.1} max={4} step={0.05} display={`${props.exposure.toFixed(2)}×`} onChange={props.onExposure} />
-      <Toggle label="Dust aerosols (Mie)" checked={props.dustOn} onChange={props.onDust} />
-      <div className={props.dustOn ? undefined : 'pointer-events-none opacity-40'}>
-        <Slider
-          label="Aerosol density"
-          value={props.aerosol}
-          min={0}
-          max={4}
-          step={0.05}
-          display={props.dustOn ? `${props.aerosol.toFixed(2)}×` : 'off'}
-          onChange={props.onAerosol}
-        />
-      </div>
-      <Toggle label="Cloud deck (overcast)" checked={props.cloudsOn} onChange={props.onClouds} />
-      <p className="mb-1 truncate text-[11px] text-neutral-500" title={w.aerosol.name}>
-        {w.aerosol.name} · g={w.aerosol.g.toFixed(2)}
-      </p>
-      <Toggle label="Molecular absorption (CH₄/O₃)" checked={props.absorption} onChange={props.onAbsorption} />
-      <Toggle label="All-sky fisheye dome" checked={props.fisheye} onChange={props.onFisheye} />
-      <button
-        type="button"
-        onClick={props.onTele}
-        aria-expanded={props.teleOpen}
-        className="mt-1 flex w-full items-center justify-between border-t border-white/10 pt-2 text-[11px] font-semibold tracking-widest text-neutral-400 hover:text-neutral-100"
-      >
-        <span>TELEMETRY</span>
-        <span>{props.teleOpen ? '–' : '+'}</span>
-      </button>
-      {props.teleOpen && (
-        <div className="mt-1">
-          <TeleRow k="Scale height" v={`${w.scaleHeightKm.toFixed(1)} km`} />
-          <TeleRow k="Column vs Earth" v={`${s.columnFactor.toExponential(2)}`} />
-          <TeleRow k="τ Rayleigh R/G/B" v={`${s.tauR.r.toFixed(3)} / ${s.tauR.g.toFixed(3)} / ${s.tauR.b.toFixed(3)}`} />
-          <TeleRow k="τ Mie R/G/B" v={`${s.tauM.r.toFixed(3)} / ${s.tauM.g.toFixed(3)} / ${s.tauM.b.toFixed(3)}`} />
-          <TeleRow k="τ absorb R/G/B" v={`${s.tauA.r.toFixed(3)} / ${s.tauA.g.toFixed(3)} / ${s.tauA.b.toFixed(3)}`} />
-          <TeleRow k="τ total @550nm" v={s.tauT.g.toFixed(3)} />
-          <TeleRow k="Multi-scatter S(τ)" v={s.saturation550.toFixed(3)} />
-          <TeleRow k="Stellar flux" v={`${s.fluxWm2 >= 100 ? s.fluxWm2.toFixed(0) : s.fluxWm2.toFixed(2)} W/m²`} />
-          <TeleRow k="Surface light (approx.)" v={fmtLux(s.lux)} />
-          <TeleRow k="Retinal gain" v={props.eye ? `${s.adaptGain.toFixed(2)}×` : '1.00× (off)'} />
-          <TeleRow k="Final exposure" v={`${s.exposureFinal.toFixed(2)}×`} />
-          <TeleRow k="Sun disc" v={`${s.starAngularDeg.toFixed(2)}°`} />
-        </div>
-      )}
-    </Panel>
-  );
-}
-
-/* ---------- HUD + fisheye ---------- */
-
-function compass(yaw: number): string {
-  const pts = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-  return pts[Math.round(yaw / 45) % 8];
-}
-
-export function Hud(props: { view: ViewState }) {
-  const yaw = ((props.view.yawDeg % 360) + 360) % 360;
-  const p = props.view.pitchDeg;
-  return (
-    <div className="rounded-lg border border-white/10 bg-neutral-950/80 px-3 py-1.5 font-mono text-[11px] text-neutral-200 backdrop-blur">
-      HDG {String(Math.round(yaw)).padStart(3, '0')}° {compass(yaw)} · PITCH {p >= 0 ? '+' : '−'}
-      {Math.abs(Math.round(p))}
-      °{props.view.fisheye ? ' · FISHEYE' : ` · ${Math.round(props.view.fov)}°`}
-    </div>
-  );
-}
-
-export function FisheyeMask() {
-  return (
-    <div
-      className="pointer-events-none absolute inset-0"
-      style={{
-        background: 'radial-gradient(circle at 50% 50%, transparent 33vmin, rgba(0,0,0,0.98) 34.5vmin)',
-      }}
-    >
-      <p className="absolute bottom-24 left-1/2 -translate-x-1/2 font-mono text-[11px] tracking-widest text-neutral-400">
-        ALL-SKY FISHEYE · 180°
-      </p>
-    </div>
-  );
+export function Hud({view}:{view:ViewState}){
+ const yaw=((view.yawDeg%360)+360)%360;
+ return <div className="rounded-lg border border-white/10 bg-neutral-950/80 px-3 py-1.5 font-mono text-[11px]">{view.fisheye?`ZENITH +90° · 180° EQUIDISTANT · ROT ${yaw.toFixed(0)}°`:`HDG ${yaw.toFixed(0)}° · PITCH ${view.pitchDeg.toFixed(0)}° · FOV ${view.fov.toFixed(0)}°`}</div>;
 }

@@ -1,0 +1,370 @@
+[
+  {
+    "world": "earth",
+    "sunElevDeg": -15,
+    "lux": 0.000023057735906071493,
+    "bodies": [
+      "Moon"
+    ],
+    "ms": 266.72688600000004
+  },
+  {
+    "world": "earth",
+    "sunElevDeg": 45,
+    "lux": 84706.54351076673,
+    "bodies": [
+      "Moon"
+    ],
+    "ms": 289.052866
+  },
+  {
+    "world": "mars",
+    "sunElevDeg": -15,
+    "lux": 0.0007815855828474011,
+    "bodies": [
+      "Phobos",
+      "Deimos"
+    ],
+    "ms": 222.378965
+  },
+  {
+    "world": "mars",
+    "sunElevDeg": 45,
+    "lux": 27951.54766460335,
+    "bodies": [
+      "Phobos",
+      "Deimos"
+    ],
+    "ms": 234.6452089999999
+  },
+  {
+    "world": "venus",
+    "sunElevDeg": -15,
+    "lux": 0.0019752613939984782,
+    "bodies": [],
+    "ms": 170.83806499999992
+  },
+  {
+    "world": "venus",
+    "sunElevDeg": 45,
+    "lux": 627.7607979700047,
+    "bodies": [],
+    "ms": 169.09328700000015
+  },
+  {
+    "world": "mercury",
+    "sunElevDeg": -15,
+    "lux": 0,
+    "bodies": [],
+    "ms": 190.08785699999999
+  },
+  {
+    "world": "mercury",
+    "sunElevDeg": 45,
+    "lux": 625820.5871920134,
+    "bodies": [],
+    "ms": 106.11382200000003
+  },
+  {
+    "world": "moon",
+    "sunElevDeg": -15,
+    "lux": 0,
+    "bodies": [
+      "Earth"
+    ],
+    "ms": 119.09617200000002
+  },
+  {
+    "world": "moon",
+    "sunElevDeg": 45,
+    "lux": 93728.52352316062,
+    "bodies": [
+      "Earth"
+    ],
+    "ms": 102.77444300000002
+  },
+  {
+    "world": "jupiter",
+    "sunElevDeg": -15,
+    "lux": 6.4429204832461956e-40,
+    "bodies": [
+      "Io",
+      "Europa",
+      "Ganymede",
+      "Callisto"
+    ],
+    "ms": 140.32347700000014
+  },
+  {
+    "world": "jupiter",
+    "sunElevDeg": 45,
+    "lux": 1827.4733908768876,
+    "bodies": [
+      "Io",
+      "Europa",
+      "Ganymede",
+      "Callisto"
+    ],
+    "ms": 110.71985700000005
+  },
+  {
+    "world": "saturn",
+    "sunElevDeg": -15,
+    "lux": 4.0178073531364766e-46,
+    "bodies": [
+      "Titan",
+      "Rhea"
+    ],
+    "ms": 238.98538599999983
+  },
+  {
+    "world": "saturn",
+    "sunElevDeg": 45,
+    "lux": 572.5512709944687,
+    "bodies": [
+      "Titan",
+      "Rhea"
+    ],
+    "ms": 178.73987499999976
+  },
+  {
+    "world": "uranus",
+    "sunElevDeg": -15,
+    "lux": 1.2590131236975343e-108,
+    "bodies": [],
+    "ms": 129.80651899999975
+  },
+  {
+    "world": "uranus",
+    "sunElevDeg": 45,
+    "lux": 155.2866135157185,
+    "bodies": [],
+    "ms": 115.01353599999993
+  },
+  {
+    "world": "neptune",
+    "sunElevDeg": -15,
+    "lux": 2.1191820907894785e-126,
+    "bodies": [
+      "Triton"
+    ],
+    "ms": 180.68594699999994
+  },
+  {
+    "world": "neptune",
+    "sunElevDeg": 45,
+    "lux": 66.9208123166744,
+    "bodies": [
+      "Triton"
+    ],
+    "ms": 142.88691599999993
+  },
+  {
+    "world": "titan",
+    "sunElevDeg": -15,
+    "lux": 0.05609566810775651,
+    "bodies": [
+      "Saturn"
+    ],
+    "ms": 158.7812899999999
+  },
+  {
+    "world": "titan",
+    "sunElevDeg": 45,
+    "lux": 52.705147532721874,
+    "bodies": [
+      "Saturn"
+    ],
+    "ms": 175.84152700000004
+  },
+  {
+    "world": "triton",
+    "sunElevDeg": -15,
+    "lux": 0.00969596560484334,
+    "bodies": [
+      "Neptune"
+    ],
+    "ms": 222.46458699999994
+  },
+  {
+    "world": "triton",
+    "sunElevDeg": 45,
+    "lux": 103.55933628452414,
+    "bodies": [
+      "Neptune"
+    ],
+    "ms": 178.83611900000005
+  },
+  {
+    "world": "pluto",
+    "sunElevDeg": -15,
+    "lux": 0.0839204728908876,
+    "bodies": [
+      "Charon"
+    ],
+    "ms": 331.52261499999986
+  },
+  {
+    "world": "pluto",
+    "sunElevDeg": 45,
+    "lux": 59.70448897133394,
+    "bodies": [
+      "Charon"
+    ],
+    "ms": 136.48070800000005
+  },
+  {
+    "world": "proxima-b",
+    "sunElevDeg": -15,
+    "lux": 0.0000010381965358923887,
+    "bodies": [],
+    "ms": 216.1790890000002
+  },
+  {
+    "world": "proxima-b",
+    "sunElevDeg": 45,
+    "lux": 14943.163751178194,
+    "bodies": [],
+    "ms": 163.91364899999917
+  },
+  {
+    "world": "trappist-1e",
+    "sunElevDeg": -15,
+    "lux": 3.1747593186277625e-13,
+    "bodies": [],
+    "ms": 203.0624939999998
+  },
+  {
+    "world": "trappist-1e",
+    "sunElevDeg": 45,
+    "lux": 4103.756149945599,
+    "bodies": [],
+    "ms": 183.7017880000003
+  },
+  {
+    "world": "kepler-186f",
+    "sunElevDeg": -15,
+    "lux": 2.491743859638721e-7,
+    "bodies": [],
+    "ms": 125.12253499999952
+  },
+  {
+    "world": "kepler-186f",
+    "sunElevDeg": 45,
+    "lux": 10894.396848449396,
+    "bodies": [],
+    "ms": 94.03655799999979
+  },
+  {
+    "world": "wasp-12b",
+    "sunElevDeg": -15,
+    "lux": 12223535.3490955,
+    "bodies": [],
+    "ms": 152.06203499999992
+  },
+  {
+    "world": "wasp-12b",
+    "sunElevDeg": 45,
+    "lux": 227007862.63184798,
+    "bodies": [],
+    "ms": 157.9704039999997
+  },
+  {
+    "world": "lv426-pre",
+    "sunElevDeg": -15,
+    "lux": 1.3074719889118909e-18,
+    "bodies": [],
+    "ms": 74.54077600000073
+  },
+  {
+    "world": "lv426-pre",
+    "sunElevDeg": 45,
+    "lux": 1369.7259060690055,
+    "bodies": [],
+    "ms": 59.29944699999942
+  },
+  {
+    "world": "lv426-post",
+    "sunElevDeg": -15,
+    "lux": 9.854341211091137e-25,
+    "bodies": [],
+    "ms": 77.05454999999984
+  },
+  {
+    "world": "lv426-post",
+    "sunElevDeg": 45,
+    "lux": 11365.598510297566,
+    "bodies": [],
+    "ms": 58.73877700000048
+  },
+  {
+    "world": "arrakis",
+    "sunElevDeg": -15,
+    "lux": 9.017606248879591e-11,
+    "bodies": [],
+    "ms": 80.69584400000076
+  },
+  {
+    "world": "arrakis",
+    "sunElevDeg": 45,
+    "lux": 93868.35085779757,
+    "bodies": [],
+    "ms": 82.55725400000028
+  },
+  {
+    "world": "solaris",
+    "sunElevDeg": -15,
+    "lux": 2.9594815876898184e-22,
+    "bodies": [],
+    "ms": 76.57927300000028
+  },
+  {
+    "world": "solaris",
+    "sunElevDeg": 45,
+    "lux": 19258.24437899473,
+    "bodies": [],
+    "ms": 72.77620000000024
+  },
+  {
+    "world": "tukayyid",
+    "sunElevDeg": -15,
+    "lux": 0.000003404893442640167,
+    "bodies": [],
+    "ms": 79.66872500000045
+  },
+  {
+    "world": "tukayyid",
+    "sunElevDeg": 45,
+    "lux": 46016.3894911566,
+    "bodies": [],
+    "ms": 83.9463139999998
+  },
+  {
+    "world": "outreach",
+    "sunElevDeg": -15,
+    "lux": 1.1757040706923744e-14,
+    "bodies": [],
+    "ms": 77.98996299999999
+  },
+  {
+    "world": "outreach",
+    "sunElevDeg": 45,
+    "lux": 56774.98807968989,
+    "bodies": [],
+    "ms": 81.4229209999994
+  },
+  {
+    "world": "luthien",
+    "sunElevDeg": -15,
+    "lux": 1.5486517831932003e-21,
+    "bodies": [],
+    "ms": 75.53273700000045
+  },
+  {
+    "world": "luthien",
+    "sunElevDeg": 45,
+    "lux": 10281.569106437388,
+    "bodies": [],
+    "ms": 66.3317190000007
+  }
+]
