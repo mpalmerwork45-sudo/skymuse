@@ -1,0 +1,429 @@
+{
+  "rows": [
+    {
+      "id": "earth",
+      "flux": 1361,
+      "angularDeg": 0.5331284278226529,
+      "rayleighG": 0.09897557364914879,
+      "absorption": {
+        "r": 0.12,
+        "g": 0.1,
+        "b": 0.015
+      },
+      "lux45": 79145.76940803652,
+      "lux2": 1946.9930895898874,
+      "luxMinus15": 0.0009348480552296946,
+      "stellarLuminosity": 1,
+      "luminosityFromRadiusTemperature": 1
+    },
+    {
+      "id": "mars",
+      "flux": 585.9872830856772,
+      "angularDeg": 0.3498210844019783,
+      "rayleighG": 0.0023757766884286422,
+      "absorption": {
+        "r": 0,
+        "g": 0,
+        "b": 0
+      },
+      "lux45": 26522.984976495674,
+      "lux2": 910.4818537464333,
+      "luxMinus15": 0.0004440149487573012,
+      "stellarLuminosity": 1,
+      "luminosityFromRadiusTemperature": 1
+    },
+    {
+      "id": "venus",
+      "flux": 2603.643570569071,
+      "angularDeg": 0.7373861464252114,
+      "rayleighG": 15.287764537023376,
+      "absorption": {
+        "r": 0,
+        "g": 0,
+        "b": 0
+      },
+      "lux45": 1755.1692086114913,
+      "lux2": 241.78503884875377,
+      "luxMinus15": 0.00011792627728285843,
+      "stellarLuminosity": 1,
+      "luminosityFromRadiusTemperature": 1
+    },
+    {
+      "id": "mercury",
+      "flux": 9087.32781817332,
+      "angularDeg": 1.3776210511519096,
+      "rayleighG": 0,
+      "absorption": {
+        "r": 0,
+        "g": 0,
+        "b": 0
+      },
+      "lux45": 627935.0326022797,
+      "lux2": 30991.94800948547,
+      "luxMinus15": 0,
+      "stellarLuminosity": 1,
+      "luminosityFromRadiusTemperature": 1
+    },
+    {
+      "id": "moon",
+      "flux": 1361,
+      "angularDeg": 0.5331284278226529,
+      "rayleighG": 0,
+      "absorption": {
+        "r": 0,
+        "g": 0,
+        "b": 0
+      },
+      "lux45": 94045.20189781081,
+      "lux2": 4641.633061432629,
+      "luxMinus15": 0,
+      "stellarLuminosity": 1,
+      "luminosityFromRadiusTemperature": 1
+    },
+    {
+      "id": "jupiter",
+      "flux": 50.33284023668639,
+      "angularDeg": 0.10252434147810248,
+      "rayleighG": 0.08620215225497126,
+      "absorption": {
+        "r": 0.6,
+        "g": 0.095,
+        "b": 0.0125
+      },
+      "lux45": 1210.0726174702006,
+      "lux2": 87.52899857107433,
+      "luxMinus15": 0.00004268972211089631,
+      "stellarLuminosity": 1,
+      "luminosityFromRadiusTemperature": 1
+    },
+    {
+      "id": "saturn",
+      "flux": 14.82952044316404,
+      "angularDeg": 0.05564995047139747,
+      "rayleighG": 0.24023633803926336,
+      "absorption": {
+        "r": 0.84,
+        "g": 0.13299999999999998,
+        "b": 0.017499999999999998
+      },
+      "lux45": 361.05204615550474,
+      "lux2": 27.56371088574551,
+      "luxMinus15": 0.000013443680323489682,
+      "stellarLuminosity": 1,
+      "luminosityFromRadiusTemperature": 1
+    },
+    {
+      "id": "uranus",
+      "flux": 3.6919487847222223,
+      "angularDeg": 0.02776700571757103,
+      "rayleighG": 0.25989376288129196,
+      "absorption": {
+        "r": 5.28,
+        "g": 0.8360000000000001,
+        "b": 0.11000000000000001
+      },
+      "lux45": 39.57788006915127,
+      "lux2": 2.4722391427121035,
+      "luxMinus15": 0.0000012057899033074326,
+      "stellarLuminosity": 1,
+      "luminosityFromRadiusTemperature": 1
+    },
+    {
+      "id": "neptune",
+      "flux": 1.505189808195023,
+      "angularDeg": 0.017729514688634224,
+      "rayleighG": 0.1845958500450179,
+      "absorption": {
+        "r": 7.199999999999999,
+        "g": 1.1400000000000001,
+        "b": 0.15000000000000002
+      },
+      "lux45": 10.772416475689932,
+      "lux2": 0.6759553161891216,
+      "luxMinus15": 3.2968497317795973e-7,
+      "stellarLuminosity": 1,
+      "luminosityFromRadiusTemperature": 1
+    },
+    {
+      "id": "titan",
+      "flux": 14.82952044316404,
+      "angularDeg": 0.05564995047139747,
+      "rayleighG": 1.151139960210608,
+      "absorption": {
+        "r": 1.44,
+        "g": 0.22799999999999998,
+        "b": 0.03
+      },
+      "lux45": 84.16415023638746,
+      "lux2": 11.100485701178151,
+      "luxMinus15": 0.000005414061022983296,
+      "stellarLuminosity": 1,
+      "luminosityFromRadiusTemperature": 1
+    },
+    {
+      "id": "triton",
+      "flux": 1.505189808195023,
+      "angularDeg": 0.017729514688634224,
+      "rayleighG": 0.00001820936160694718,
+      "absorption": {
+        "r": 0,
+        "g": 0,
+        "b": 0
+      },
+      "lux45": 104.0210680083037,
+      "lux2": 3.8801884104786875,
+      "luxMinus15": 1.9566920244596835e-7,
+      "stellarLuminosity": 1,
+      "luminosityFromRadiusTemperature": 1
+    },
+    {
+      "id": "pluto",
+      "flux": 0.8722961063932062,
+      "angularDeg": 0.013496873564376765,
+      "rayleighG": 0.00001641258764943608,
+      "absorption": {
+        "r": 0.72,
+        "g": 0.11399999999999999,
+        "b": 0.015
+      },
+      "lux45": 49.5327707335992,
+      "lux2": 0.5791121212561515,
+      "luxMinus15": 2.490159787821395e-7,
+      "stellarLuminosity": 1,
+      "luminosityFromRadiusTemperature": 1
+    },
+    {
+      "id": "proxima-b",
+      "flux": 983.6114358592836,
+      "angularDeg": 1.6928756320632115,
+      "rayleighG": 0.09435917213596799,
+      "absorption": {
+        "r": 0.072,
+        "g": 0.06,
+        "b": 0.009
+      },
+      "lux45": 59873.69772020239,
+      "lux2": 1559.1048345150489,
+      "luxMinus15": 0.0007432110686924517,
+      "stellarLuminosity": 0.0017,
+      "luminosityFromRadiusTemperature": 0.0018220828922807474
+    },
+    {
+      "id": "trappist-1e",
+      "flux": 959.9910714285713,
+      "angularDeg": 2.265935309365294,
+      "rayleighG": 0.12108178953584992,
+      "absorption": {
+        "r": 0.27599999999999997,
+        "g": 0.068,
+        "b": 0.009500000000000001
+      },
+      "lux45": 43597.60501017559,
+      "lux2": 1637.070432954507,
+      "luxMinus15": 0.0007955380841176768,
+      "stellarLuminosity": 0.000553,
+      "luminosityFromRadiusTemperature": 0.0005508208624772537
+    },
+    {
+      "id": "kepler-186f",
+      "flux": 299.00227194787385,
+      "angularDeg": 0.6417297023611633,
+      "rayleighG": 0.13104740018165814,
+      "absorption": {
+        "r": 0.096,
+        "g": 0.08000000000000002,
+        "b": 0.012
+      },
+      "lux45": 17289.997432455555,
+      "lux2": 550.0401719591966,
+      "luxMinus15": 0.00026709316220907835,
+      "stellarLuminosity": 0.041,
+      "luminosityFromRadiusTemperature": 0.04995010650317386
+    },
+    {
+      "id": "wasp-12b",
+      "flux": 4152476.116016094,
+      "angularDeg": 37.20058020454826,
+      "rayleighG": 0.18088853326978155,
+      "absorption": {
+        "r": 0,
+        "g": 0,
+        "b": 0
+      },
+      "lux45": 136476442.28981793,
+      "lux2": 7608799.472378582,
+      "luxMinus15": 3.7110450791047094,
+      "stellarLuminosity": 1.6,
+      "luminosityFromRadiusTemperature": 3.4837850617518846
+    },
+    {
+      "id": "lv426-pre",
+      "flux": 850.6250000000001,
+      "angularDeg": 0.4220594370309722,
+      "rayleighG": 0.5614481752880843,
+      "absorption": {
+        "r": 2.88,
+        "g": 0.45599999999999996,
+        "b": 0.06
+      },
+      "lux45": 4080.6927995799256,
+      "lux2": 501.68712392025907,
+      "luxMinus15": 0.0002446888160092837,
+      "stellarLuminosity": 0.9,
+      "luminosityFromRadiusTemperature": 0.8547448312342261
+    },
+    {
+      "id": "lv426-post",
+      "flux": 850.6250000000001,
+      "angularDeg": 0.4220594370309722,
+      "rayleighG": 0.11241639880819505,
+      "absorption": {
+        "r": 0.048,
+        "g": 0.04000000000000001,
+        "b": 0.006
+      },
+      "lux45": 12439.033729643952,
+      "lux2": 1247.1079649690462,
+      "luxMinus15": 0.0006082543244919493,
+      "stellarLuminosity": 0.9,
+      "luminosityFromRadiusTemperature": 0.8547448312342261
+    },
+    {
+      "id": "arrakis",
+      "flux": 1735.9693877551022,
+      "angularDeg": 0.5712093347037565,
+      "rayleighG": 0.11124611904188554,
+      "absorption": {
+        "r": 0.024,
+        "g": 0.020000000000000004,
+        "b": 0.003
+      },
+      "lux45": 54335.59174999056,
+      "lux2": 3634.8836158816266,
+      "luxMinus15": 0.0017728486999707327,
+      "stellarLuminosity": 2.5,
+      "luminosityFromRadiusTemperature": 3.603510523187273
+    },
+    {
+      "id": "solaris",
+      "flux": 1055.6232686980609,
+      "angularDeg": 0.5050688501367004,
+      "rayleighG": 0.10325483683459026,
+      "absorption": {
+        "r": 0.024,
+        "g": 0.020000000000000004,
+        "b": 0.003
+      },
+      "lux45": 24540.42744202645,
+      "lux2": 1641.7294544264428,
+      "luxMinus15": 0.000800723814087869,
+      "stellarLuminosity": 0.7,
+      "luminosityFromRadiusTemperature": 0.6179451217584955
+    },
+    {
+      "id": "tukayyid",
+      "flux": 972.1428571428572,
+      "angularDeg": 0.6092903046673666,
+      "rayleighG": 0.09387022766687692,
+      "absorption": {
+        "r": 0.08399999999999999,
+        "g": 0.06999999999999999,
+        "b": 0.010499999999999999
+      },
+      "lux45": 56356.421438661324,
+      "lux2": 1831.1637943302114,
+      "luxMinus15": 0.0008894884181462559,
+      "stellarLuminosity": 0.35,
+      "luminosityFromRadiusTemperature": 0.33101993119136736
+    },
+    {
+      "id": "outreach",
+      "flux": 1361,
+      "angularDeg": 0.5331284278226529,
+      "rayleighG": 0.0981516937442804,
+      "absorption": {
+        "r": 0.06,
+        "g": 0.05,
+        "b": 0.0075
+      },
+      "lux45": 59084.36390667855,
+      "lux2": 2671.8273828687807,
+      "luxMinus15": 0.0013024038747834355,
+      "stellarLuminosity": 1,
+      "luminosityFromRadiusTemperature": 0.8823521697729072
+    },
+    {
+      "id": "luthien",
+      "flux": 1063.2812499999998,
+      "angularDeg": 0.5664492179800459,
+      "rayleighG": 0.13328864700202672,
+      "absorption": {
+        "r": 0.012,
+        "g": 0.010000000000000002,
+        "b": 0.0015
+      },
+      "lux45": 14652.14130054193,
+      "lux2": 1307.801527161886,
+      "luxMinus15": 0.0006378565284757959,
+      "stellarLuminosity": 0.5,
+      "luminosityFromRadiusTemperature": 0.47395932897331056
+    }
+  ],
+  "temperatureLux": [
+    {
+      "tempK": 2566,
+      "radiusSun": 5.070394735643092,
+      "luminosity": 1,
+      "lux": 94045.20189781081,
+      "starColor": [
+        1,
+        0.3596172192670656,
+        0.0723348316088049
+      ]
+    },
+    {
+      "tempK": 3042,
+      "radiusSun": 3.607751829417737,
+      "luminosity": 1,
+      "lux": 94045.20189781081,
+      "starColor": [
+        1,
+        0.4484531808335933,
+        0.16449641651160382
+      ]
+    },
+    {
+      "tempK": 5778,
+      "radiusSun": 1,
+      "luminosity": 1,
+      "lux": 94045.20189781081,
+      "starColor": [
+        1,
+        0.891238933522494,
+        0.7955761186189737
+      ]
+    },
+    {
+      "tempK": 10000,
+      "radiusSun": 0.33385284,
+      "luminosity": 1,
+      "lux": 94045.20189781081,
+      "starColor": [
+        0.5886807136780222,
+        0.7016148631915018,
+        1
+      ]
+    }
+  ],
+  "scaleHeightChangesState": false,
+  "groundAlbedoChangesState": false,
+  "horizonSunAirMass": 37.91960837783634,
+  "horizonViewAirMass": 16.666666666666668,
+  "fisheyeTransparentDiameterDeg": 135.80730601630938,
+  "waspAtMinus15": {
+    "visibleLimbElevation": 3.60029010227413,
+    "twilight": 0.000003726653172078671,
+    "lux": 3.7110450791047094,
+    "adaptGain": 60
+  }
+}

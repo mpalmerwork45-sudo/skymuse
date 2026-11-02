@@ -1,0 +1,64 @@
+{
+  "method": "Blackbody Planck spectrum, CIE 1nm photopic V(lambda), integral over dataset range normalized by Stefan-Boltzmann exitance; illustrative consistency check, not stellar atmosphere spectra. Ozone from Bruneton 233K 10nm-averaged Bremen values at 300DU.",
+  "blackbody": [
+    {
+      "temperatureK": 2566,
+      "lumensPerBolometricWatt": 9.307134304712466,
+      "solarConstant133000Over1361": 97.72226304188096,
+      "appOverBlackbody": 10.499715577586691
+    },
+    {
+      "temperatureK": 3042,
+      "lumensPerBolometricWatt": 21.96960907030901,
+      "solarConstant133000Over1361": 97.72226304188096,
+      "appOverBlackbody": 4.448065631443049
+    },
+    {
+      "temperatureK": 3788,
+      "lumensPerBolometricWatt": 47.528285650122285,
+      "solarConstant133000Over1361": 97.72226304188096,
+      "appOverBlackbody": 2.0560864273805244
+    },
+    {
+      "temperatureK": 5778,
+      "lumensPerBolometricWatt": 92.08039164422365,
+      "solarConstant133000Over1361": 97.72226304188096,
+      "appOverBlackbody": 1.0612711490135287
+    },
+    {
+      "temperatureK": 6300,
+      "lumensPerBolometricWatt": 94.97876615739905,
+      "solarConstant133000Over1361": 97.72226304188096,
+      "appOverBlackbody": 1.0288853708621082
+    },
+    {
+      "temperatureK": 10000,
+      "lumensPerBolometricWatt": 73.4676835471061,
+      "solarConstant133000Over1361": 97.72226304188096,
+      "appOverBlackbody": 1.33013943442525
+    }
+  ],
+  "ozone": [
+    {
+      "wavelengthNm": 680,
+      "sigmaM2": 1.209e-25,
+      "tau300DU": 0.009745749,
+      "appTau": 0.12,
+      "appOver300DU": 12.313060802202068
+    },
+    {
+      "wavelengthNm": 550,
+      "sigmaM2": 3.5e-25,
+      "tau300DU": 0.028213500000000002,
+      "appTau": 0.1,
+      "appOver300DU": 3.5444025023481665
+    },
+    {
+      "wavelengthNm": 440,
+      "sigmaM2": 1.582e-26,
+      "tau300DU": 0.0012752501999999998,
+      "appTau": 0.015,
+      "appOver300DU": 11.76239768478374
+    }
+  ]
+}
