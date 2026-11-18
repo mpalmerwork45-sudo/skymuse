@@ -6,6 +6,58 @@ const model = await scienceModule();
 const close = (actual, expected, tolerance) =>
   assert.ok(Math.abs(actual - expected) < tolerance, `${actual} vs ${expected}`);
 
+test('hemisphere quadrature integrates isotropic radiance and even azimuth harmonics', () => {
+  const width = 9;
+  // Azimuth integrals of both cos(phi) and cos(2 phi) vanish. The second
+  // harmonic is especially sensitive to duplicate weight at 0 and pi.
+  for (const modulation of [0, 0.8]) {
+    let flux = 0, total = 0;
+    const sines = [0, 0.05, 0.4, 0.7, 1];
+    for (let y = 1; y < sines.length; y++) {
+      for (let x = 0; x < width; x++) {
+        const phi = Math.PI * x / (width - 1);
+        const radiance = 2 + modulation * (Math.cos(phi) + Math.cos(2 * phi));
+        const cell = model.hemisphereCellWeights(x, width, sines[y-1], sines[y]);
+        flux += radiance * cell.projectedAngle;
+        total += radiance * cell.solidAngle;
+      }
+    }
+    close(flux, 2 * Math.PI, 1e-13);
+    close(total, 4 * Math.PI, 1e-13);
+  }
+});
+
+test('rotated secondary sky pixels integrate to their reported diffuse flux and mean luminance', () => {
+  const world = model.WORLDS.find(w => w.id === 'earth');
+  const quality = {width:8, height:8, steps:12, layers:24, discSamples:8};
+  const source = {name:'secondary', direction:model.direction(23.4,31), radiusRad:.00465,
+    spectrum:model.stellarSpectrum(world.star, 1).map(value => 0.6 * value)};
+  const options = {sunAzDeg:90, sunElevDeg:35, aerosolScale:1, absorptionOn:true,
+    eyeAdapted:false, exposure:1, illuminants:[source]};
+  const sky = model.computeTransport(world, options, quality);
+  assert.equal(sky.fullAzimuth, true);
+  const flux = [0,0,0];
+  let mean = 0;
+  // The reprojected texture covers the full 2pi, with a duplicate last
+  // column. Integrate each unique azimuth once, independently of the
+  // source solver's mirrored half-sky weights.
+  for (let y = 0; y < sky.height; y++) {
+    const sineEdge = row => Math.sin((row / (sky.height - 1)) ** 2 * Math.PI / 2);
+    const lower = sineEdge(Math.max(0, y - 0.5));
+    const upper = sineEdge(Math.min(sky.height - 1, y + 0.5));
+    const projected = Math.PI * (upper ** 2 - lower ** 2) / (sky.width - 1);
+    for (let x = 0; x < sky.width - 1; x++) {
+      const i = 4 * (y * sky.width + x);
+      for (let c = 0; c < 3; c++) flux[c] += sky.radiance[i+c] * projected;
+      mean += model.luminance(sky.radiance.subarray(i,i+3)) * (upper - lower) / (sky.width - 1);
+    }
+  }
+  for (let c = 0; c < 3; c++) close(flux[c] / sky.diffuseRGB[c], 1, 2e-7);
+  // The RGB-to-Y coefficients have four decimal places.
+  close(model.luminance(flux) / sky.diffuseLux, 1, 1e-4);
+  close(mean / sky.meanLuminance, 1, 1e-4);
+});
+
 test('an isothermal layer emits its absorptivity times blackbody flux on each side', () => {
   for (const depth of [0.001, 1, 3, 10, 100]) {
     for (const albedo of [0, 0.3, 0.99]) {

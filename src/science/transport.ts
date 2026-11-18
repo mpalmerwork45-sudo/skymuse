@@ -78,6 +78,16 @@ export function diffuseProfile(w:WorldSpec,s:SkyState,lookup:ColumnLookup,n:numb
   return {heights,up,down,rho};
 }
 
+/** Integrate a cell's solid angle and horizontal projection on the mirrored half-sky. */
+export function hemisphereCellWeights(x:number,width:number,sinLower:number,sinUpper:number) {
+  // The samples at 0 and pi have half a cell on the stored half-sky.
+  // Reflection across the source meridian accounts for the other half-sky.
+  const halfCell = x === 0 || x === width - 1;
+  const azimuthSpan = (halfCell ? Math.PI : 2 * Math.PI) / (width - 1);
+  const solidAngle = azimuthSpan * (sinUpper - sinLower);
+  return {solidAngle, projectedAngle: solidAngle * (sinUpper + sinLower) / 2};
+}
+
 function integrateLight(w:WorldSpec,s:SkyState,quality:Quality,thermalOn:boolean):TransportResult {
   const start=performance.now(),opts=s,lookup=getLookup(w,opts.refractionOn!==false),g=lookup.g;
   const {width,height,steps,layers}=quality,p:Vec3=[0,w.radiusKm+(opts.observerHeightKm??.0017),0];
@@ -96,8 +106,7 @@ function integrateLight(w:WorldSpec,s:SkyState,quality:Quality,thermalOn:boolean
     columns.set(total,y*4);
     const lo=y===0?0:((y-.5)/(height-1))**2*Math.PI/2;
     const hi=y===height-1?Math.PI/2:((y+.5)/(height-1))**2*Math.PI/2;
-    const fluxWeight=Math.PI/width*(Math.sin(hi)**2-Math.sin(lo)**2);
-    const solidWeight=2*Math.PI/width*(Math.sin(hi)-Math.sin(lo));
+    const sinLower=Math.sin(lo),sinUpper=Math.sin(hi);
     for(let x=0;x<width;x++) {
       // [0,pi] azimuth is sufficient for an azimuthally symmetric atmosphere.
       const az=x/(width-1)*Math.PI;
@@ -139,10 +148,13 @@ function integrateLight(w:WorldSpec,s:SkyState,quality:Quality,thermalOn:boolean
       }
       const colour=rgb(L),offset=(y*width+x)*4;
       radiance.set([...colour,1],offset);
-      // Trapezoidal azimuth quadrature over the mirrored half-sky.
-      const azWeight=width/(width-1)*(x===0||x===width-1?.5:1);
-      for(let i=0;i<BANDS;i++) {diffuseSpectrum[i]+=L[i]*fluxWeight*azWeight;singleLux+=L1[i]*CIE[i][1]*fluxWeight*azWeight;multipleLux+=Lm[i]*CIE[i][1]*fluxWeight*azWeight;}
-      meanLuminance+=Math.max(0,L.reduce((n,l,i)=>n+l*CIE[i][1],0))*solidWeight*azWeight/(2*Math.PI);
+      const {solidAngle,projectedAngle}=hemisphereCellWeights(x,width,sinLower,sinUpper);
+      for(let i=0;i<BANDS;i++) {
+        diffuseSpectrum[i]+=L[i]*projectedAngle;
+        singleLux+=L1[i]*CIE[i][1]*projectedAngle;
+        multipleLux+=Lm[i]*CIE[i][1]*projectedAngle;
+      }
+      meanLuminance+=Math.max(0,L.reduce((n,l,i)=>n+l*CIE[i][1],0))*solidAngle/(2*Math.PI);
     }
   }
   const diffuseRGB=rgb(diffuseSpectrum),groundDirect=new Float64Array(BANDS),groundDiffuse=new Float64Array(BANDS);
