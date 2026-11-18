@@ -1,0 +1,568 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "Catalogue point flux reaches the HDR star buffer",
+      "passed": true,
+      "detail": {
+        "referenceFlux": 0.00000254,
+        "measuredStarFlux": 0.0000025394795315306466
+      }
+    },
+    {
+      "name": "A ground-level cloud attenuates terrain by its specified above-surface column",
+      "passed": true,
+      "detail": {
+        "terrainTransmission": 0.5052103996276855,
+        "expectedFog": 0.5052562806494063
+      }
+    },
+    {
+      "name": "GPU resolved stellar radiance is independent of distance",
+      "passed": true,
+      "detail": {
+        "disc1": 2131366784,
+        "disc2": 2131366784
+      }
+    },
+    {
+      "name": "Unresolved stellar disc conserves inverse-square angular flux",
+      "passed": true,
+      "detail": {
+        "energyA": 358.3353665641149,
+        "energyB": 89.58384164102873
+      }
+    },
+    {
+      "name": "Actual fisheye places a horizon star on the rim",
+      "passed": true,
+      "detail": {
+        "centre": 0,
+        "rim": 429312732.58302116
+      }
+    },
+    {
+      "name": "Earth daylight side sky is spectrally blue",
+      "passed": true,
+      "detail": [
+        1981.273681640625,
+        2938.638427734375,
+        4602.32958984375,
+        0
+      ]
+    },
+    {
+      "name": "Opaque Venus clouds remove the direct stellar image",
+      "passed": true,
+      "detail": {
+        "centreVenus": [
+          848.9537963867188,
+          24.860977172851562,
+          -19.45038604736328,
+          1
+        ],
+        "leftVenus": [
+          842.1616821289062,
+          24.557846069335938,
+          -19.283523559570312,
+          1
+        ]
+      }
+    },
+    {
+      "name": "Companion phase follows stellar illumination, with no positive night-light floor",
+      "passed": true,
+      "detail": {
+        "lit": 13784.6982421875,
+        "dark": 0
+      }
+    },
+    {
+      "name": "Foreground absorption extinguishes a bright companion",
+      "passed": true,
+      "detail": {
+        "obscured": 0
+      }
+    },
+    {
+      "name": "Catalogue starlight is attenuated by the atmosphere",
+      "passed": true
+    },
+    {
+      "name": "WASP partial-disc setting remains illuminated",
+      "passed": true,
+      "detail": 12252956.354064796
+    },
+    {
+      "name": "Refracted resolved radiance follows the L/n² invariant",
+      "passed": true,
+      "detail": {
+        "centreImage": 2132547712,
+        "intrinsic": 2131367156.4196205,
+        "gain": 1.0005541359695878
+      }
+    },
+    {
+      "name": "GPU horizon disc is lifted and flattened by the shared ray geometry",
+      "passed": true,
+      "detail": {
+        "apparent": 0.4924549036629206,
+        "flattening": 0.8407583293803572
+      }
+    },
+    {
+      "name": "Refracted GPU disc flux agrees with independent incident-cap quadrature",
+      "passed": true,
+      "detail": {
+        "energy": 121814.83144086653,
+        "predicted": 121766.49234857547,
+        "ratio": 1.000396981890163
+      }
+    },
+    {
+      "name": "Catalogue stars use the same apparent position and focusing as the disc",
+      "passed": true,
+      "detail": {
+        "apparentY": 0.0042538875713944435,
+        "expectedY": 0.004252972402665357,
+        "focusing": 0.8176033225868864
+      }
+    },
+    {
+      "name": "Rendered companion flux agrees with its independent ground illuminant",
+      "passed": true,
+      "detail": {
+        "companionFlux": 0.3846735458142879,
+        "incident": 0.3828669102856981,
+        "sphereFlux": 0.3845065379811599,
+        "ratio": 1.0047187037585508,
+        "coveredOmega": 0.00010539900001031182,
+        "expectedOmega": 0.00010536757805383461
+      }
+    },
+    {
+      "name": "Resolved companion surface normals agree with independent finite-sphere rays",
+      "passed": true,
+      "detail": [
+        {
+          "dx": -60,
+          "dy": 0,
+          "gpu": 3900.261962890625,
+          "cpu": 3897.12060674892
+        },
+        {
+          "dx": -30,
+          "dy": 0,
+          "gpu": 5108.74365234375,
+          "cpu": 5106.302397964043
+        },
+        {
+          "dx": 0,
+          "dy": 0,
+          "gpu": 5443.83349609375,
+          "cpu": 5441.527800756677
+        },
+        {
+          "dx": 30,
+          "dy": 0,
+          "gpu": 5084.80126953125,
+          "cpu": 5082.350304749632
+        },
+        {
+          "dx": 60,
+          "dy": 0,
+          "gpu": 3836.76708984375,
+          "cpu": 3833.6336266365033
+        },
+        {
+          "dx": 0,
+          "dy": -60,
+          "gpu": 4562.8046875,
+          "cpu": 4572.816674959475
+        },
+        {
+          "dx": 0,
+          "dy": 60,
+          "gpu": 3174.046142578125,
+          "cpu": 3157.891761860701
+        }
+      ]
+    },
+    {
+      "name": "Reflected companion light reaches the rendered night ground",
+      "passed": true,
+      "detail": {
+        "litGround": [
+          0.013817504979670048,
+          0.012293634004890919,
+          0.011768359690904617,
+          1
+        ],
+        "directLux": 0.3293207525111843
+      }
+    },
+    {
+      "name": "Secondary sky glow follows the companion azimuth in the GPU renderer",
+      "passed": true,
+      "detail": {
+        "nearMoon": 0.011527925729751587,
+        "oppositeMoon": 0.0014439953956753016
+      }
+    },
+    {
+      "name": "Display gamut mapping preserves the target luminance of saturated spectral colours",
+      "passed": true,
+      "detail": {
+        "bytes": [
+          0,
+          110,
+          160
+        ],
+        "y": 0.13689926052776988,
+        "expected": 0.13793103448275865
+      }
+    },
+    {
+      "name": "Matched terrestrial skies respond to stellar classes at 45° elevation",
+      "passed": true,
+      "detail": [
+        {
+          "type": "M3V",
+          "spectrum": "phoenix",
+          "temperatureK": 3430,
+          "distanceAU": 0.14252721650970757,
+          "fluxWm2": 1088.7999999999997,
+          "lux": 15096.504964203148,
+          "radianceRGB": [
+            787.1212158203125,
+            665.54931640625,
+            458.600341796875
+          ],
+          "luminance": 676.4537862548827,
+          "blueRed": 0.5826298828941314,
+          "pixels": {
+            "fixed": [
+              55,
+              50,
+              41
+            ],
+            "reference": [
+              93,
+              86,
+              71
+            ],
+            "adapted": [
+              75,
+              88,
+              103
+            ]
+          }
+        },
+        {
+          "type": "K5V",
+          "spectrum": "phoenix",
+          "temperatureK": 4440,
+          "distanceAU": 0.46375255983057767,
+          "fluxWm2": 1088.8000000000002,
+          "lux": 42017.61729364614,
+          "radianceRGB": [
+            2068.10546875,
+            1858.0826416015625,
+            1837.145751953125
+          ],
+          "luminance": 1901.221851220703,
+          "blueRed": 0.8883230472107058,
+          "pixels": {
+            "fixed": [
+              87,
+              82,
+              82
+            ],
+            "reference": [
+              90,
+              86,
+              85
+            ],
+            "adapted": [
+              74,
+              88,
+              105
+            ]
+          }
+        },
+        {
+          "type": "G2V",
+          "spectrum": "solar",
+          "temperatureK": 5772,
+          "distanceAU": 1.118033988749895,
+          "fluxWm2": 1088.7999999999997,
+          "lux": 67778.52628730744,
+          "radianceRGB": [
+            2271.872802734375,
+            3297.99951171875,
+            4757.287109375
+          ],
+          "luminance": 3185.2055379394533,
+          "blueRed": 2.0939936001915407,
+          "pixels": {
+            "fixed": [
+              88,
+              105,
+              125
+            ],
+            "reference": [
+              74,
+              89,
+              106
+            ],
+            "adapted": [
+              71,
+              90,
+              111
+            ]
+          }
+        },
+        {
+          "type": "F5V",
+          "spectrum": "phoenix",
+          "temperatureK": 6550,
+          "distanceAU": 2.120741370480017,
+          "fluxWm2": 1088.7999999999997,
+          "lux": 72219.89402705492,
+          "radianceRGB": [
+            2226.125,
+            3527.1171875,
+            5907.80517578125
+          ],
+          "luminance": 3422.411921191406,
+          "blueRed": 2.653851502400472,
+          "pixels": {
+            "fixed": [
+              87,
+              108,
+              138
+            ],
+            "reference": [
+              71,
+              89,
+              114
+            ],
+            "adapted": [
+              70,
+              90,
+              113
+            ]
+          }
+        },
+        {
+          "type": "A5V",
+          "spectrum": "phoenix",
+          "temperatureK": 8100,
+          "distanceAU": 3.9301635171080895,
+          "fluxWm2": 1088.8000000000002,
+          "lux": 74011.55183162935,
+          "radianceRGB": [
+            1909.1158447265625,
+            3629.121826171875,
+            7790.67822265625
+          ],
+          "luminance": 3563.9129263427735,
+          "blueRed": 4.080778148783364,
+          "pixels": {
+            "fixed": [
+              80,
+              109,
+              156
+            ],
+            "reference": [
+              65,
+              90,
+              128
+            ],
+            "adapted": [
+              69,
+              90,
+              117
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Matched terrestrial skies respond to stellar classes at 2° elevation",
+      "passed": true,
+      "detail": [
+        {
+          "type": "M3V",
+          "spectrum": "phoenix",
+          "temperatureK": 3430,
+          "distanceAU": 0.14252721650970757,
+          "fluxWm2": 1088.7999999999997,
+          "lux": 379.9835881086643,
+          "radianceRGB": [
+            2015.32666015625,
+            721.4540405273438,
+            123.14591217041016
+          ],
+          "luminance": 953.3335125930786,
+          "blueRed": 0.06110469067126942,
+          "pixels": {
+            "fixed": [
+              87,
+              52,
+              18
+            ],
+            "reference": [
+              255,
+              196,
+              159
+            ],
+            "adapted": [
+              255,
+              198,
+              129
+            ]
+          }
+        },
+        {
+          "type": "K5V",
+          "spectrum": "phoenix",
+          "temperatureK": 4440,
+          "distanceAU": 0.46375255983057767,
+          "fluxWm2": 1088.8000000000002,
+          "lux": 1055.3781372587725,
+          "radianceRGB": [
+            5274.6455078125,
+            2030.325927734375,
+            584.635498046875
+          ],
+          "luminance": 2615.6894214355466,
+          "blueRed": 0.11083882266229014,
+          "pixels": {
+            "fixed": [
+              133,
+              85,
+              45
+            ],
+            "reference": [
+              255,
+              196,
+              160
+            ],
+            "adapted": [
+              255,
+              198,
+              131
+            ]
+          }
+        },
+        {
+          "type": "G2V",
+          "spectrum": "solar",
+          "temperatureK": 5772,
+          "distanceAU": 1.118033988749895,
+          "fluxWm2": 1088.7999999999997,
+          "lux": 1725.276998813141,
+          "radianceRGB": [
+            6367.001953125,
+            3638.86669921875,
+            1579.377197265625
+          ],
+          "luminance": 4070.1731121582034,
+          "blueRed": 0.2480566534914361,
+          "pixels": {
+            "fixed": [
+              141,
+              108,
+              72
+            ],
+            "reference": [
+              252,
+              197,
+              135
+            ],
+            "adapted": [
+              251,
+              197,
+              126
+            ]
+          }
+        },
+        {
+          "type": "F5V",
+          "spectrum": "phoenix",
+          "temperatureK": 6550,
+          "distanceAU": 2.120741370480017,
+          "fluxWm2": 1088.7999999999997,
+          "lux": 1843.3338243028186,
+          "radianceRGB": [
+            6309.01220703125,
+            3934.6337890625,
+            1988.4608154296875
+          ],
+          "luminance": 4298.912952026367,
+          "blueRed": 0.31517783611412153,
+          "pixels": {
+            "fixed": [
+              139,
+              112,
+              81
+            ],
+            "reference": [
+              244,
+              198,
+              146
+            ],
+            "adapted": [
+              249,
+              197,
+              129
+            ]
+          }
+        },
+        {
+          "type": "A5V",
+          "spectrum": "phoenix",
+          "temperatureK": 8100,
+          "distanceAU": 3.9301635171080895,
+          "fluxWm2": 1088.8000000000002,
+          "lux": 1899.743431115794,
+          "radianceRGB": [
+            5537.75244140625,
+            4143.71630859375,
+            2653.895263671875
+          ],
+          "luminance": 4332.523310986328,
+          "blueRed": 0.47923689109474676,
+          "pixels": {
+            "fixed": [
+              131,
+              115,
+              93
+            ],
+            "reference": [
+              229,
+              202,
+              165
+            ],
+            "adapted": [
+              246,
+              198,
+              135
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Shaders compile and link",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "No WebGL errors",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

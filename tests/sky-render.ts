@@ -73,7 +73,8 @@ function compareIlluminants(section:string,starElevation:number,yaw:number,pitch
  for(const id of ['earth-m-dwarf','earth-k-dwarf','earth','earth-f-dwarf','earth-a-dwarf']){
   const preset=world(id);
   const w=id==='earth'?{...preset,distanceAU:1/Math.sqrt(.8)}:preset;
-  header.insertCell().textContent=w.star.type;
+  const spectrum=w.star.spectrum;
+  header.insertCell().textContent=`${w.star.type} · ${spectrum==='solar'?'ASTM G173':spectrum==='phoenix'?'PHOENIX':'Planck'}`;
   const {s,t}=setup(w,{sunAzDeg:90,sunElevDeg:starElevation},false);
   point(yaw,pitch,fov);render();
   const [r,g,b]=raw(target.width>>1,target.height>>1);
@@ -86,11 +87,12 @@ function compareIlluminants(section:string,starElevation:number,yaw:number,pitch
    pixels[mode]=displayPixel();
    const img=document.createElement('img');img.alt=`${w.star.type}, ${rows[mode].title}`;img.src=renderer.domElement.toDataURL();rows[mode].cells.insertCell().append(img);
   }
-  measurements.push({type:w.star.type,temperatureK:w.star.tempK,fluxWm2:s.fluxWm2,lux:t.lux,radianceRGB:[r,g,b],luminance:luminance([r,g,b]),blueRed:b/r,pixels});
+  measurements.push({type:w.star.type,spectrum,temperatureK:w.star.tempK,distanceAU:w.distanceAU,fluxWm2:s.fluxWm2,lux:t.lux,radianceRGB:[r,g,b],luminance:luminance([r,g,b]),blueRed:b/r,pixels});
  }
  const cool=measurements[0],hot=measurements[4];
  check(`Matched terrestrial skies respond to stellar classes at ${starElevation}° elevation`,
-  measurements.every(x=>Math.abs(x.fluxWm2-1088.8)<.01)&&hot.blueRed>cool.blueRed*1.5&&hot.pixels.fixed[2]>cool.pixels.fixed[2],measurements);
+  measurements.every(x=>Math.abs(x.fluxWm2-1088.8)<.01&&x.spectrum===(x.type==='G2V'?'solar':'phoenix'))&&
+  hot.blueRed>cool.blueRed*1.5&&hot.pixels.fixed[2]>cool.pixels.fixed[2],measurements);
 }
 try{
  const moon=world('moon');
