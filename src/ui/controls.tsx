@@ -135,11 +135,12 @@ export function WorldPanel(props: { worldId: string; customWorld?: WorldSpec; on
 }
 
 
-export function DisplayPanel(p:{calculating:boolean;world:WorldSpec;sky:SkyState;aerosol:number;dustOn:boolean;cloudsOn:boolean;absorption:boolean;refraction:boolean;eye:boolean;exposure:number;fisheye:boolean;terrain:boolean;teleOpen:boolean;onAerosol:(v:number)=>void;onDust:(v:boolean)=>void;onClouds:(v:boolean)=>void;onAbsorption:(v:boolean)=>void;onRefraction:(v:boolean)=>void;onEye:(v:boolean)=>void;onExposure:(v:number)=>void;onFisheye:(v:boolean)=>void;onTerrain:(v:boolean)=>void;onTele:()=>void}) {
+export function DisplayPanel(p:{adaptColours:boolean;onAdaptColours:(value:boolean)=>void;calculating:boolean;world:WorldSpec;sky:SkyState;aerosol:number;dustOn:boolean;cloudsOn:boolean;absorption:boolean;refraction:boolean;eye:boolean;exposure:number;fisheye:boolean;terrain:boolean;teleOpen:boolean;onAerosol:(v:number)=>void;onDust:(v:boolean)=>void;onClouds:(v:boolean)=>void;onAbsorption:(v:boolean)=>void;onRefraction:(v:boolean)=>void;onEye:(v:boolean)=>void;onExposure:(v:number)=>void;onFisheye:(v:boolean)=>void;onTerrain:(v:boolean)=>void;onTele:()=>void}) {
  const s=p.sky;
  return <Panel title="ATMOSPHERE & DISPLAY" className="w-64 max-h-[60vh] overflow-y-auto">
   <div className="mb-2 flex gap-1">{[[true,'Adapted display'],[false,'Fixed camera']].map(([value,label])=><button key={String(label)} className={`rounded px-2 py-1 text-xs ${p.eye===value?'bg-amber-400/20 text-amber-100':'text-neutral-400'}`} onClick={()=>p.onEye(value as boolean)}>{label}</button>)}</div>
   <p className="mb-2 text-[10px] text-neutral-400">Approximate visual adaptation on an SDR screen.</p>
+  {p.eye&&<Toggle label="Adapt white balance to star" checked={p.adaptColours} onChange={p.onAdaptColours}/>}
   <Slider label="Exposure" value={Math.log2(p.exposure)} min={-6} max={6} step={.25} display={`${Math.log2(p.exposure).toFixed(2)} stops`} onChange={v=>p.onExposure(2**v)}/>
   <Toggle label="Haze / dust" checked={p.dustOn} onChange={p.onDust}/>
   <Slider label="Aerosol column" value={p.aerosol} min={0} max={4} step={.05} unit="×" onChange={p.onAerosol}/>

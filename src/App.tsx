@@ -21,6 +21,7 @@ export default function App(){
  const [sunElev,setSunElev]=useState(2),[sunAz,setSunAz]=useState(90),[aerosol,setAerosol]=useState(1);
  const [dustOn,setDustOn]=useState(true),[cloudsOn,setCloudsOn]=useState(true),[absorption,setAbsorption]=useState(true);
  const [refraction,setRefraction]=useState(true);
+ const [adaptColours,setAdaptColours]=useState(true);
  const [eye,setEye]=useState(true),[exposure,setExposure]=useState(1),[view,setView]=useState(DEFAULT_VIEW);
  const [worldsOpen,setWorldsOpen]=useState(()=>window.innerWidth>=640),[displayOpen,setDisplayOpen]=useState(()=>window.innerWidth>=640),[teleOpen,setTeleOpen]=useState(true);
  const [observation,setObservation]=useState<Observation>({date:'2026-10-30T06:00:00Z',latitude:0,longitude:0,mode:'manual'});
@@ -50,7 +51,7 @@ export default function App(){
  };
  const button='rounded-lg border border-white/10 bg-neutral-950/80 px-3 py-1.5 text-xs hover:bg-neutral-800';
  return <div className="relative h-full w-full overflow-hidden bg-black text-neutral-200">
-  <SkyView world={renderedWorld} sky={renderedSky} astronomy={renderedScene.astronomy} observation={renderedScene.observation} transport={transport.result} view={view} onViewChange={setView}/>
+  <SkyView adaptColours={adaptColours} world={renderedWorld} sky={renderedSky} astronomy={renderedScene.astronomy} observation={renderedScene.observation} transport={transport.result} view={view} onViewChange={setView}/>
   <div className="pointer-events-none absolute inset-x-0 top-0 flex flex-col justify-between gap-3 sm:flex-row p-3">
    <div className="pointer-events-auto max-w-lg rounded-lg border border-white/10 bg-neutral-950/85 px-3 py-2 backdrop-blur">
     <h1 className="text-sm font-bold tracking-[.2em] text-amber-100">SKYMUSE <span className="font-normal tracking-normal text-neutral-400">· planetary skies</span></h1>
@@ -67,7 +68,7 @@ export default function App(){
    </div></div>
   </div>
   <div className="absolute left-3 top-56 sm:top-40"><WorldPanel worldId={base.id} customWorld={customWorld} onSelect={selectWorld} open={worldsOpen} onToggle={()=>setWorldsOpen(false)}/></div>
-  {displayOpen&&<div className="absolute right-3 top-56 sm:top-32"><DisplayPanel calculating={transport.busy} world={world} sky={sky} aerosol={aerosol} dustOn={dustOn} cloudsOn={cloudsOn} absorption={absorption} refraction={refraction} eye={eye} exposure={exposure} fisheye={view.fisheye} terrain={view.terrain} teleOpen={teleOpen} onAerosol={setAerosol} onDust={setDustOn} onClouds={setCloudsOn} onAbsorption={setAbsorption} onRefraction={setRefraction} onEye={setEye} onExposure={setExposure} onFisheye={fisheye=>setView(v=>({...v,fisheye}))} onTerrain={terrain=>setView(v=>({...v,terrain}))} onTele={()=>setTeleOpen(x=>!x)}/></div>}
+  {displayOpen&&<div className="absolute right-3 top-56 sm:top-32"><DisplayPanel adaptColours={adaptColours} onAdaptColours={setAdaptColours} calculating={transport.busy} world={world} sky={sky} aerosol={aerosol} dustOn={dustOn} cloudsOn={cloudsOn} absorption={absorption} refraction={refraction} eye={eye} exposure={exposure} fisheye={view.fisheye} terrain={view.terrain} teleOpen={teleOpen} onAerosol={setAerosol} onDust={setDustOn} onClouds={setCloudsOn} onAbsorption={setAbsorption} onRefraction={setRefraction} onEye={setEye} onExposure={setExposure} onFisheye={fisheye=>setView(v=>({...v,fisheye}))} onTerrain={terrain=>setView(v=>({...v,terrain}))} onTele={()=>setTeleOpen(x=>!x)}/></div>}
   <section aria-label="Observation" className="absolute bottom-3 left-1/2 w-[min(96vw,780px)] -translate-x-1/2 rounded-lg border border-white/10 bg-neutral-950/90 px-3 py-2 backdrop-blur">
    <div className="mb-2 flex flex-wrap items-center gap-3 text-[11px]">
     <label>Geometry <select aria-label="Geometry mode" className="ml-1 rounded bg-neutral-800 p-1" value={observation.mode} onChange={e=>{setPlay(false);setObservation(o=>({...o,mode:e.target.value as Observation['mode']}));}}><option value="manual">Manual stellar position</option>{astronomy.hasEphemeris&&<option value="ephemeris">Date and location</option>}</select></label>
