@@ -181,7 +181,7 @@ vec2 ringBand(float r){
  return vec2(.5,.55);
 }
 void main(){
- if(fisheyeMask(vUv)<.5){gl_FragColor=vec4(0.);return;}
+ if(fisheyeMask(vUv)<.5){gl_FragColor=vec4(0.,0.,0.,1.);return;}
  vec3 ray=rayDirection(vUv),sky=texture2D(uSky,skyUV(ray)).rgb;
  vec3 geometric,offset;float visible=escapedRay(ray,geometric,offset);
  vec4 cols=column(ray);float pixel=sqrt(length(cross(dFdx(geometric),dFdy(geometric))));

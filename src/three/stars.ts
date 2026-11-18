@@ -53,7 +53,10 @@ export function starAttributes(rows:StarRow[],w:WorldSpec,s:SkyState,a:Astronomy
 }
 export function createStars(){
   const uniforms={uResolution:{value:new THREE.Vector2()},uForward:{value:new THREE.Vector3()},uRight:{value:new THREE.Vector3()},uUp:{value:new THREE.Vector3()},uFov:{value:60*DEG},uYaw:{value:0},uFisheye:{value:false}};
-  const material=new THREE.ShaderMaterial({uniforms,transparent:true,blending:THREE.AdditiveBlending,depthTest:false,depthWrite:false,
+  // Each PSF already carries its flux in RGB. Sum it directly in the HDR
+  // target. The scene alpha is used later for occultation in the display pass.
+  const material=new THREE.ShaderMaterial({uniforms,transparent:true,blending:THREE.CustomBlending,
+    blendEquation:THREE.AddEquation,blendSrc:THREE.OneFactor,blendDst:THREE.OneFactor,depthTest:false,depthWrite:false,
     vertexShader:`precision highp float; attribute vec3 flux; varying vec3 vRadiance; ${projectionGLSL}
     void main(){vec3 d=normalize(position);vec2 ndc;float omega;
      if(uFisheye){float theta=acos(clamp(d.y,-1.,1.)),az=atan(d.x,-d.z)-uYaw;float r=theta/(PI*.5);

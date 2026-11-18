@@ -42,6 +42,24 @@ function gallery(name:string){const f=document.createElement('figure'),img=docum
 function resize(w:number,h:number){target.setSize(w,h);starTarget.setSize(w,h);renderer.setSize(w,h);}
 try{
  const moon=world('moon');
+ // Exercise the actual additive star pass. The earlier CPU-only test could
+ // pass even when blending erased every stellar fragment from the framebuffer.
+ setup(moon,{sunElevDeg:-45},false);point(90,45);
+ stars.geometry.setAttribute('position',new THREE.Float32BufferAttribute(direction(90,45),3));
+ const referenceFlux=2.54e-6;
+ stars.geometry.setAttribute('flux',new THREE.Float32BufferAttribute(Array(3).fill(referenceFlux),3));
+ render();
+ const starPixels=new Float32Array(16*16*4);
+ renderer.readRenderTargetPixels(starTarget,152,92,16,16,starPixels);
+ const pixelAngle=2*Math.tan(30*DEG)/200;
+ let measuredStarFlux=0;
+ for(let y=0;y<16;y++)for(let x=0;x<16;x++){
+  const u=(x-7.5)*pixelAngle,v=(y-7.5)*pixelAngle;
+  measuredStarFlux+=starPixels[4*(16*y+x)]*pixelAngle**2/(1+u*u+v*v)**1.5;
+ }
+ check('Catalogue point flux reaches the HDR star buffer',Math.abs(measuredStarFlux/referenceFlux-1)<.02,{referenceFlux,measuredStarFlux});
+ stars.geometry.setAttribute('position',new THREE.Float32BufferAttribute([],3));
+ stars.geometry.setAttribute('flux',new THREE.Float32BufferAttribute([],3));
  setup(moon,{},false);point(90,45,2);render();const disc1=raw(160,100)[0];
  setup({...moon,distanceAU:2},{},false);point(90,45,2);render();const disc2=raw(160,100)[0];
  check('GPU resolved stellar radiance is independent of distance',Math.abs(disc1/disc2-1)<1e-5,{disc1,disc2});
