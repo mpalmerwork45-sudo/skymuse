@@ -10,10 +10,18 @@ export function slab(tau:number,omega:number,g=0):{r:number;t:number} {
   const e=Math.exp(-k*tau),den=(k+a)+(k-a)*e*e;
   return {r:b*(1-e*e)/den,t:2*k*e/den};
 }
-/** Source photons are injected centrally and include internal reflections. */
+/** Integrate a constant source per unit optical depth over the homogeneous
+ * layer. Inputs are the unattenuated source totals in each hemisphere. */
 export function emittingLayer(tau:number,omega:number,g:number,up:number,down:number):Layer {
-  const whole=slab(tau,omega,g),half=slab(tau/2,omega,g),den=1-half.r*half.r;
-  return {...whole,up:half.t*(up+half.r*down)/den,down:half.t*(down+half.r*up)/den};
+  const whole=slab(tau,omega,g);
+  const absorption=2*(1-omega), transport=2*(1-omega*g);
+  const halfThickness=0.5*tau*Math.sqrt(absorption*transport);
+  const integral=halfThickness===0?1:Math.tanh(halfThickness)/halfThickness;
+  // Symmetric and antisymmetric solutions of the same two-stream equations
+  // as slab(). This form has finite transparent and conservative limits.
+  const shared=0.5*(up+down)*integral/(1+0.5*tau*absorption*integral);
+  const directed=0.5*(up-down)*integral/(1+0.5*tau*transport*integral);
+  return {...whole,up:shared+directed,down:shared-directed};
 }
 /** Index 0 = bottom. The lower boundary reflects down flux and emits given flux. */
 export function solveLayers(layers:Layer[],albedo:number,groundEmission:number,incident=0):{up:Float64Array;down:Float64Array} {
