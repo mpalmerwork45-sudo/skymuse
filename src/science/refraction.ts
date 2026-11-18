@@ -6,6 +6,7 @@
 import type { WorldSpec } from './worlds';
 import type { Vec3 } from './spectrum';
 import { add, sub, dot, scale, length, unit, cross } from './vectors';
+import { mergeGrid } from './sampling';
 
 export const REFRACTION_WAVELENGTH_NM = 589;
 // Edwards (1919), NBS Technologic Paper 131, Table 1, ideal-gas column:
@@ -37,6 +38,7 @@ export interface RefractiveProfile {
   top: number;
   gasH: number;
   refractiveQ0: number;
+  samplingHeights?: number[];
 }
 
 export function refractiveIndex(g: RefractiveProfile, heightKm: number): number {
@@ -143,8 +145,20 @@ export function traceRefractedRay(g: RefractiveProfile, origin: Vec3, apparentDi
   for (const [a,b] of legs) {
     if (Math.abs(b-a) < 1e-10) continue;
     const sign = b > a ? 1 : -1;
-    for (let j = 0; j < count; j++) {
-      const t0 = j/count, t1 = (j+1)/count, dt = (t1-t0)/2, tm = (t0+t1)/2;
+    // Optical layers can be much thinner than the full radial leg. Retain
+    // the endpoint transformation at tangencies while resolving those layers.
+    let grid: number[] | undefined;
+    if (g.samplingHeights?.length) {
+      const extra = [];
+      for (const height of g.samplingHeights) {
+        const fraction=(g.radius+height-a)/(b-a);
+        if (fraction>0 && fraction<1) extra.push(2/Math.PI*Math.asin(Math.sqrt(fraction)));
+      }
+      if (extra.length) grid=mergeGrid(Array.from({length:count+1},(_,j)=>j/count),extra);
+    }
+    for (let j = 0; j < (grid ? grid.length-1 : count); j++) {
+      const t0 = grid ? grid[j] : j/count, t1 = grid ? grid[j+1] : (j+1)/count;
+      const dt = (t1-t0)/2, tm = (t0+t1)/2;
       const samples: RadialSample[] = [];
       let ds = 0, dphi = 0;
       for (const [x,w] of GAUSS) {

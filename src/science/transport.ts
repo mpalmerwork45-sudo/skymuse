@@ -1,7 +1,8 @@
 import type { WorldSpec } from './worlds';
 import { computeSky, opticalDepth, type SkyOptions, type SkyState } from './atmosphere';
-import { BANDS, NM, BAND_RGB, CIE, reflectance, rgb, planck, type Vec3 } from './spectrum';
-import { atmosphereGeometry, ColumnLookup, direction, azElev, dot, length, raySegments, stellarDisc, verticalColumn, DEG, type Column } from './geometry';
+import { BANDS, NM, CIE, reflectance, rgb, planck, type Vec3 } from './spectrum';
+import { atmosphereGeometry, ColumnLookup, direction, azElev, dot, length, raySegments, stellarDisc, verticalColumn, heightGrid, DEG, type Column } from './geometry';
+import { lowerIndex } from './sampling';
 import { emittingLayer, solveLayers } from './twoStream';
 import { refractiveIndex } from './refraction';
 
@@ -34,14 +35,14 @@ function beamMean(a:number,b:number):number {
 }
 
 export function diffuseProfile(w:WorldSpec,s:SkyState,lookup:ColumnLookup,n:number,thermalOn=true) {
-  const g=lookup.g, heights=Float64Array.from({length:n+1},(_,j)=>g.top*(j/n)**2);
+  const g=lookup.g, heights=heightGrid(g,0,n+1);
   const sun=stellarDisc(direction(0,s.sunElevDeg),s.starAngularDeg*DEG/2,s.starAngularDeg>2?64:12);
   const columns=Array.from(heights,h=>sun.map(q=>lookup.sampleLight([0,g.radius+Math.max(.001,h),0],q.dir)));
   const rho=reflectance(w.surfaceColor,w.groundAlbedo);
   const up:Float64Array[]=[],down:Float64Array[]=[];
   for(let i=0;i<BANDS;i++) {
     const layers=[];
-    for(let j=0;j<n;j++) {
+    for(let j=0;j<heights.length-1;j++) {
       const c=verticalColumn(g,heights[j],heights[j+1]);
       const tau=opticalDepth(s.optics,i,c);
       const tr=s.optics.rayleigh[i]*c[0],tm=s.optics.aerosol[i]*c[1],tc=s.optics.cloud[i]*c[3],scat=tr+tm+tc;
@@ -100,14 +101,18 @@ function integrateLight(w:WorldSpec,s:SkyState,quality:Quality,thermalOn:boolean
     for(let x=0;x<width;x++) {
       // [0,pi] azimuth is sufficient for an azimuthally symmetric atmosphere.
       const az=x/(width-1)*Math.PI;
-      const v=direction(az/DEG,elevation/DEG),view=raySegments(g,p,v,steps);
+      const east=Math.sin(az), south=-Math.cos(az);
       const atten=new Float64Array(BANDS).fill(1),L=new Float64Array(BANDS),L1=new Float64Array(BANDS),Lm=new Float64Array(BANDS);
-      for(const seg of view.segments) {
+      // In a spherical atmosphere ray positions, tangent directions and all
+      // density samples at this elevation rotate together about the zenith.
+      for(const seg of ray.segments) {
+        const position:Vec3=[east*seg.p[0],seg.p[1],south*seg.p[0]];
+        const tangent:Vec3=[east*seg.direction[0],seg.direction[1],south*seg.direction[0]];
         const dc=seg.density.map(d=>d*seg.ds) as Column;
-        const sunlight=cap.map(q=>lookup.sampleLight(seg.p,q.dir));
+        const sunlight=cap.map(q=>lookup.sampleLight(position,q.dir));
         const localIndexSquared=refractiveIndex(g,seg.h)**2,rayGain=s.refraction.gain/localIndexSquared;
-        const phases=sunlight.map(light=>{const mu=light?dot(seg.direction,light.direction):0;return {r:phaseR(mu),mu};});
-        const at=Math.min(layers-1,Math.max(0,Math.floor(Math.sqrt(Math.max(0,seg.h)/g.top)*layers)));
+        const phases=sunlight.map(light=>{const mu=light?dot(tangent,light.direction):0;return {r:phaseR(mu),mu};});
+        const at=lowerIndex(profile.heights,seg.h);
         const f=Math.min(1,Math.max(0,(seg.h-profile.heights[at])/(profile.heights[at+1]-profile.heights[at])));
         for(let i=0;i<BANDS;i++) {
           if(atten[i]<1e-14) continue;

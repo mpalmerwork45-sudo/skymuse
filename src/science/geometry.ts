@@ -2,6 +2,7 @@ import type { WorldSpec } from './worlds';
 import type { Vec3 } from './spectrum';
 import { add, sub, scale, dot, length, unit, cross } from './vectors';
 import { gasLorentzFactor, refractiveIndex, refractiveGradient, minimumEscapeElevation, traceRefractedRay } from './refraction';
+import { lowerIndex, mergeGrid } from './sampling';
 export { dot, length, scale, add, sub, unit, cross } from './vectors';
 
 export const DEG = Math.PI/180;
@@ -25,14 +26,35 @@ export interface AtmosGeometry {
   radius: number; top: number; gasH: number; aerosolH: number;
   ozoneCentre: number; ozoneSigma: number; cloudCentre: number; cloudSigma: number;
   refractiveQ0: number;
+  samplingHeights: number[];
 }
 export type Column = [number,number,number,number];
 export function atmosphereGeometry(w: WorldSpec, refractionOn = true): AtmosGeometry {
   const gasH=Math.max(.1,w.scaleHeightKm), aerosolH=w.aerosolHeightKm;
   const refractiveQ0=refractionOn?gasLorentzFactor(w):0;
   if(!Number.isFinite(refractiveQ0)||refractiveQ0<0||refractiveQ0>=.95) throw new RangeError('Atmospheric density exceeds the supported gas refractivity range.');
-  return {radius:w.radiusKm,top:Math.max(12*gasH,12*aerosolH,w.clouds.centreKm+6*w.clouds.sigmaKm,60),
+  const top=Math.max(12*gasH,12*aerosolH,w.clouds.centreKm+6*w.clouds.sigmaKm,60);
+  const samplingHeights:number[]=[];
+  // Supported custom profiles span four orders of magnitude in width. Seed
+  // unresolved profiles in physical km on camera rays AND incident-light grids.
+  const seed=(centre:number,width:number,start:number,end:number)=>{
+    for(let i=start;i<=end;i++){
+      const h=centre+i*width/4;
+      if(h>0 && h<top)samplingHeights.push(h);
+    }
+  };
+  if(w.clouds.opticalDepth>0 && top/48>w.clouds.sigmaKm)
+    seed(w.clouds.centreKm,w.clouds.sigmaKm,-24,24);
+  if(w.ozoneDU>0 && top/48>8)seed(25,8,-24,24);
+  if(w.pressureBar>0 && top/192>gasH)seed(0,gasH,0,48);
+  if(w.aerosol.density>0 && top/192>aerosolH)seed(0,aerosolH,0,48);
+  return {radius:w.radiusKm,top,samplingHeights,
     gasH,aerosolH,ozoneCentre:25,ozoneSigma:8,cloudCentre:w.clouds.centreKm,cloudSigma:w.clouds.sigmaKm,refractiveQ0};
+}
+
+export function heightGrid(g:AtmosGeometry,low:number,count:number):number[] {
+  const base=Array.from({length:count},(_,j)=>low+(g.top-low)*(j/(count-1))**2);
+  return mergeGrid(base,g.samplingHeights);
 }
 function erf(x: number): number {
   const s=Math.sign(x); x=Math.abs(x); const t=1/(1+.3275911*x);
@@ -67,11 +89,29 @@ export function raySegments(g: AtmosGeometry,p: Vec3,d: Vec3,count=64): {segment
   const ground=groundDistance>0 && groundDistance<outer;
   const distance=ground?groundDistance:Math.max(0,outer);
   const segments: Segment[]=[];
-  for(let j=0;j<count;j++) {
+  let grid:number[]|undefined;
+  if(g.samplingHeights.length && distance>0) {
+    const closest=-dot(p,d),perpendicular=length(cross(p,d)),crossings=[];
+    for(const h of g.samplingHeights){
+      const r=g.radius+h;
+      if(r<perpendicular)continue;
+      const delta=Math.sqrt((r-perpendicular)*(r+perpendicular));
+      crossings.push(closest-delta,closest+delta);
+    }
+    grid=mergeGrid(Array.from({length:count+1},(_,j)=>distance*(j/count)**2),crossings);
+  }
+  for(let j=0;j<(grid?grid.length-1:count);j++) {
     // Quadratic spacing resolves the observer's dense lower atmosphere.
-    const a=distance*(j/count)**2,b=distance*((j+1)/count)**2;
+    const a=grid?grid[j]:distance*(j/count)**2,b=grid?grid[j+1]:distance*((j+1)/count)**2;
     const q=add(p,scale(d,(a+b)/2)), h=length(q)-g.radius;
-    segments.push({p:q,direction:d,h,density:densities(g,h),ds:b-a});
+    let density=densities(g,h);
+    if(grid){
+      const offset=scale(d,(b-a)/(2*Math.sqrt(3)));
+      const left=densities(g,length(sub(q,offset))-g.radius);
+      const right=densities(g,length(add(q,offset))-g.radius);
+      density=left.map((value,k)=>(value+right[k])/2) as Column;
+    }
+    segments.push({p:q,direction:d,h,density,ds:b-a});
   }
   return {segments,ground,distance};
 }
@@ -204,10 +244,13 @@ export class ColumnLookup {
   readonly data:Float32Array;
   private readonly light:Float32Array;
   private readonly horizon:Float64Array;
-  constructor(readonly g:AtmosGeometry,readonly heights=48,readonly angles=192){
+  private readonly altitudes:number[];
+  constructor(readonly g:AtmosGeometry,heightSamples=48,readonly angles=192){
+    this.altitudes=heightGrid(g,.001,heightSamples);
+    const heights=this.altitudes.length;
     this.data=new Float32Array(heights*angles*4);this.light=new Float32Array(heights*angles*2);this.horizon=new Float64Array(heights);
     for(let y=0;y<heights;y++){
-      const h=.001+(g.top-.001)*(y/(heights-1))**2;
+      const h=this.altitudes[y];
       const records=g.refractiveQ0>0?sourceRecords(g,h,384,48):null,gain=refractiveIndex(g,h)**2;
       this.horizon[y]=records?.[0]?.geometricMu??-Math.sqrt(Math.max(0,1-(g.radius/(g.radius+h))**2));
       for(let x=0;x<angles;x++){
@@ -223,10 +266,13 @@ export class ColumnLookup {
   }
   sampleLight(p:Vec3,geometric:Vec3):SourcePath|null {
     const r=length(p),height=r-this.g.radius,up=scale(p,1/r),mu=Math.max(-1,Math.min(1,dot(up,geometric)));
-    const xx=sourceCoordinate(mu,this.angles),yy=Math.sqrt(Math.max(0,height-.001)/(this.g.top-.001))*(this.heights-1);
-    const x=Math.max(0,Math.min(this.angles-2,Math.floor(xx))),y=Math.max(0,Math.min(this.heights-2,Math.floor(yy)));
-    const u=Math.max(0,Math.min(1,xx-x)),v=Math.max(0,Math.min(1,yy-y));
-    if(mu<this.horizon[y]*(1-v)+this.horizon[y+1]*v)return null;
+    const xx=sourceCoordinate(mu,this.angles),y=lowerIndex(this.altitudes,height);
+    const x=Math.max(0,Math.min(this.angles-2,Math.floor(xx)));
+    const u=Math.max(0,Math.min(1,xx-x)),v=Math.max(0,Math.min(1,(height-this.altitudes[y])/(this.altitudes[y+1]-this.altitudes[y])));
+    const straight=this.g.refractiveQ0===0;
+    const horizon=straight ? -Math.sqrt(Math.max(0,1-(this.g.radius/r)**2))
+                           : this.horizon[y]*(1-v)+this.horizon[y+1]*v;
+    if(mu<horizon)return null;
     const columns:Column=[0,0,0,0];let weight=0,apparentMu=0,focusing=0;
     for(let j=0;j<2;j++)for(let i=0;i<2;i++){
       const at=(y+j)*this.angles+x+i,off=at*4,w=(i?u:1-u)*(j?v:1-v);
@@ -234,9 +280,17 @@ export class ColumnLookup {
       for(let k=0;k<4;k++)columns[k]+=this.data[off+k]*w;
       apparentMu+=this.light[at*2]*w;focusing+=this.light[at*2+1]*w;weight+=w;
     }
-    if(weight<1e-8)return null;
+    if(weight<1e-8){
+      // A grazing geometric ray can be visible between four blocked table
+      // entries. Use its actual column when interpolation has no support.
+      if(!straight)return null;
+      const exact=pathColumns(this.g,p,geometric);
+      return exact?{columns:exact,direction:geometric,focusing:1}:null;
+    }
+    const interpolated=columns.map(c=>c/weight) as Column;
+    if(straight)return {columns:interpolated,direction:geometric,focusing:1};
     apparentMu=Math.max(-1,Math.min(1,apparentMu/weight));
-    return {columns:columns.map(c=>c/weight) as Column,direction:localDirection(up,geometric,mu,apparentMu),focusing:focusing/weight};
+    return {columns:interpolated,direction:localDirection(up,geometric,mu,apparentMu),focusing:focusing/weight};
   }
   sample(p:Vec3,d:Vec3):Column|null {return this.sampleLight(p,d)?.columns??null;}
 }
