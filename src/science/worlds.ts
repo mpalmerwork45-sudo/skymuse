@@ -9,6 +9,7 @@
  * - Aerosol `density` is the vertical Mie optical depth at 550 nm (clear-day baseline).
  */
 import { conservativeHabitableZone, type HabitableZone } from './habitableZone';
+import { stellarLuminosity } from './spectrum';
 
 export type WorldGroup =
   | 'Custom'
@@ -376,19 +377,21 @@ const CATALOGUE: WorldSpec[] = PRESETS.map(p => {
   };
 });
 
-// Representative dwarf parameters: Pecaut & Mamajek (2013), online sequence
-// version 2022.04.16. Earthlike atmospheric properties remain assumed.
-const DWARF_SEQUENCE = 'https://www.pas.rochester.edu/~emamajek/EEM_dwarf_UBVIJHK_colors_Teff.txt';
+// Representative dwarf parameters from the Pecaut & Mamajek sequence.
+const DWARF_SEQUENCE = 'https://raw.githubusercontent.com/emamajek/SpectralType/master/EEM_dwarf_UBVIJHK_colors_Teff.txt';
 const HZ_SOURCE = 'https://arxiv.org/abs/1404.5292';
 const EARTH = CATALOGUE.find(world => world.id === 'earth')!;
 const EARTH_DWARFS: WorldSpec[] = [
   { id: 'earth-k-dwarf', name: 'Earth with K Dwarf', star: { name: 'Representative K dwarf', type: 'K5V', tempK: 4440, radiusSun: .701 } },
   { id: 'earth-m-dwarf', name: 'Earth with M Dwarf', star: { name: 'Representative M dwarf', type: 'M3V', tempK: 3430, radiusSun: .361 } },
+  { id: 'earth-f-dwarf', name: 'Earth with F Dwarf', star: { name: 'Representative F dwarf', type: 'F5V', tempK: 6550, radiusSun: 1.473 } },
+  { id: 'earth-a-dwarf', name: 'Earth with A Dwarf', star: { name: 'Representative A dwarf', type: 'A5V', tempK: 8100, radiusSun: 1.785 } },
 ].map(preset => {
-  const luminosity = preset.star.radiusSun ** 2 * (preset.star.tempK / 5772) ** 4;
+  const luminosity = stellarLuminosity(preset.star);
   const star: StarSpec = { ...preset.star, spectrum: 'blackbody', luminosity };
-  // 0.8 S⊕ is inside the conservative HZ for both temperatures. Equal solar
-  // irradiance would be above these cool stars' modelled runaway limits.
+  // Each comparison receives the same total stellar flux. The A star lies
+  // outside the Kopparapu fit, so use the classical HZ fit calibrated through 10,000 K.
+  const useExtendedFit = star.tempK > 7200;
   const distanceAU = Math.sqrt(luminosity / .8);
   return {
     ...EARTH, id: preset.id, name: preset.name, group: 'Earth variants', star, distanceAU,
@@ -396,12 +399,14 @@ const EARTH_DWARFS: WorldSpec[] = [
     aerosol: { ...EARTH.aerosol, tint: [...EARTH.aerosol.tint] },
     clouds: { ...EARTH.clouds },
     blurb: `Earth's atmosphere under a ${star.type} dwarf, at 80% of Earth's stellar energy inside the modelled Goldilocks zone.`,
-    habitableZone: conservativeHabitableZone(star),
+    habitableZone: conservativeHabitableZone(star, useExtendedFit ? 'ramirez2018' : 'kopparapu2014'),
     provenance: {
-      status: 'Hypothetical atmosphere', epoch: 'Representative dwarf sequence, 2022.04.16; habitable-zone model, 2014',
+      status: 'Hypothetical atmosphere', epoch: 'Representative dwarf sequence, 2024.05.15',
       sources: [
         { label: 'Pecaut & Mamajek stellar sequence', url: DWARF_SEQUENCE },
-        { label: 'Kopparapu et al. habitable zones', url: HZ_SOURCE },
+        useExtendedFit
+          ? { label: 'Ramirez classical habitable zones, Table 1', url: 'https://doi.org/10.3390/geosciences8080280' }
+          : { label: 'Kopparapu et al. habitable zones', url: HZ_SOURCE },
       ],
       assumptions: 'An Earth comparison scenario with unchanged radius, gravity, pressure, composition, ozone, haze, surface and prescribed temperature. The representative dwarf uses a blackbody spectrum. Distance is chosen for 0.8 Earth bolometric irradiance, within the conservative one-Earth-mass runaway/maximum-greenhouse limits. Climate, photochemistry, stellar activity and tidal locking are not solved; habitable-zone placement does not establish actual habitability. Observer rotation and sky frame are assumed, with no Solar System ephemeris or inherited Moon.',
     },

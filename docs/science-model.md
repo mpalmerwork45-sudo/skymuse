@@ -73,17 +73,22 @@ The catalogue status labels deliberately distinguish measured worlds with assume
 - [HYG v4.0](https://github.com/astronexus/HYG-Database/tree/main/hyg), David Nash / Astronexus; adapted subset under CC BY-SA 4.0. Original license: `public/data/HYG-LICENSE.txt`. No new ownership or accuracy claim is made for the catalogue.
 - [Cheng et al. (2017), Pluto haze](https://arxiv.org/abs/1702.07771), basis for the revised approximate visible vertical haze optical depth.
 
-## Earth comparisons around K and M dwarfs
+## Earth comparisons around other stars
 
-Two presets appear directly beneath Earth in the world picker. They copy Earth's radius, gravity, pressure, gas composition, ozone, haze, cloud settings, surface reflectance and prescribed temperature. They have separate identities and assumed observer frames; they do not inherit Earth's lunar ephemeris or orbital distance. They also remain available as starting points in the custom editor.
+Four presets beneath Earth keep its radius, gravity, gas composition, pressure, ozone, haze, clouds, surface reflectance and prescribed temperature. Each has an assumed rotation and observer frame, and can serve as a starting point in the custom editor. Orbital distances scale as `sqrt((L/Lsun)/0.8)` AU, giving each world 1088.8 W/m² of incident bolometric irradiance. The normal Earth preset at 1 AU receives 1361 W/m².
 
-The representative stellar parameters come from [Pecaut & Mamajek (2013), online dwarf sequence version 2022.04.16](https://www.pas.rochester.edu/~emamajek/EEM_dwarf_UBVIJHK_colors_Teff.txt): K5V at 4440 K and 0.701 R☉, M3V at 3430 K and 0.361 R☉. The renderer continues to derive luminosity from radius and temperature and uses blackbody spectra. These are representative classes, not observations of specific planetary systems.
+| Host type | Effective temperature (K) | Radius (R☉) | Orbital distance (AU) |
+|---|---:|---:|---:|
+| K5V | 4440 | 0.701 | 0.464 |
+| M3V | 3430 | 0.361 | 0.143 |
+| F5V | 6550 | 1.473 | 2.121 |
+| A5V | 8100 | 1.785 | 3.930 |
 
-Orbital distance is `sqrt((L/Lsun)/0.8)` AU. Each preset therefore receives 1088.8 W/m², or 80% of the 1361 W/m² Earth reference. Distances are approximately 0.464 AU (K dwarf) and 0.143 AU (M dwarf).
+The temperatures and radii represent average main-sequence stars. The renderer derives their luminosities using the Stefan–Boltzmann law. [Pecaut & Mamajek dwarf sequence](https://raw.githubusercontent.com/emamajek/SpectralType/master/EEM_dwarf_UBVIJHK_colors_Teff.txt)
 
-The distances are checked against the conservative one-Earth-mass runaway-greenhouse inner edge and maximum-greenhouse outer edge from [Kopparapu et al. (2014), equations 4–5 and Table 1](https://arxiv.org/abs/1404.5292). `S_eff = S_sun + a T* + b T*² + c T*³ + d T*⁴`, with `T* = T_eff − 5780 K`, and `d_HZ = sqrt((L/Lsun)/S_eff)` AU. The climate-fit reference temperature is distinct from the renderer's 5772 K nominal solar luminosity calibration. The fit is only evaluated within its published 2600–7200 K range. The Physics panel shows the resulting distance interval.
+For K, M and F, the habitable-zone boundaries use the one-Earth-mass runaway-greenhouse and maximum-greenhouse fits calibrated for 2600–7200 K. For A, the 8100 K photosphere requires the extended classical fit. That model uses the Leconte inner edge and the CO₂ maximum-greenhouse outer edge and covers 2600–10,000 K. Both models give effective flux limits as a fourth-order polynomial in `T_eff − 5780 K`. The distance for each edge is `sqrt((L/Lsun)/S_eff)` AU. [Kopparapu et al. (2014), Table 1](https://arxiv.org/abs/1404.5292), [Ramirez & Kaltenegger (2018), Table 2](https://arxiv.org/abs/1805.02801), [Ramirez (2018), corrected Table 1](https://doi.org/10.3390/geosciences8080280)
 
-Equal Earth bolometric irradiance would exceed the conservative inner-edge flux for these cool stars; 0.8 Earth flux supplies a margin within both intervals. Habitable-zone placement is a model criterion for possible liquid surface water under favourable atmospheric conditions. It does not solve the retained Earth's climate, photochemistry, atmospheric retention, stellar activity, rotation or tidal locking. Changing a comparison in the custom editor clears its preset habitable-zone annotation rather than retaining a potentially invalid claim.
+All four orbits lie within their respective fitted ranges. The fixed Earth atmosphere allows a controlled comparison of illumination. The atmosphere and surface temperature of a real planet would also depend on climate, photochemistry and stellar evolution. Changing a preset in the custom editor clears its habitable-zone annotation.
 
 ## Atmospheric refraction
 

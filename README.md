@@ -1,6 +1,6 @@
 # Skymuse — Planetary Sky Simulator
 
-Explore 25 planetary, lunar, exoplanet and fictional skies using spectral atmospheric transport, a catalogue starfield and physical viewing geometry.
+Explore 27 planetary, lunar, exoplanet and fictional skies using spectral atmospheric transport, a catalogue starfield and physical viewing geometry.
 
 The current model integrates 48 visible wavelength bands using CIE colour matching functions. It combines spherical atmospheric refraction and single scattering, approximate hemispheric multiple scattering, finite stellar discs, reflected companion illumination, measured methane/ozone absorption data, a reflecting lower boundary, and one photometric display pipeline. Real-world weather and exoplanet atmospheres are generally assumed. “Adapted display” is an SDR viewing approximation, not a calibrated reproduction of human vision.
 
@@ -19,11 +19,9 @@ The initial scene is Earth at a manually selected +2° geometric stellar elevati
 
 Illuminated moons and parent planets also light the sky and ground. Their contribution follows their phase, size, distance, assumed spectral reflectance and eclipses; **Reflected body direct** shows their direct horizontal illuminance. Date/location controls orient the companions even in manual stellar mode. Their materials and the secondary illumination remain idealized Lambertian approximations.
 
-## Earth around cooler stars
+## Earth around other stars
 
-The world picker nests **Earth with K Dwarf** and **Earth with M Dwarf** directly beneath **Earth**. These comparison presets preserve Earth's atmosphere and surface while replacing the Sun with representative K5V (4440 K, 0.701 solar radii) and M3V (3430 K, 0.361 solar radii) stars. Their distances are approximately 0.464 AU and 0.143 AU.
-
-Both receive 80% of Earth's bolometric stellar irradiance and lie inside the conservative one-Earth-mass habitable-zone limits of Kopparapu et al. (2014). The **Physics** readout shows each zone. They are hypothetical scenarios with prescribed Earthlike conditions; no equilibrium climate or actual habitability is inferred. Full sources and equations are in the [model notes](docs/science-model.md#earth-comparisons-around-k-and-m-dwarfs).
+Under **Earth**, choose a K5V, M3V, F5V or A5V star. All four comparisons keep Earth's atmosphere and surface and receive the same total stellar irradiance, 80% of Earth's. The F and A stars have larger radii than the Sun and sit farther away at 2.121 and 3.930 AU. The **Physics** readout gives the habitable-zone interval from the climate fit appropriate to each stellar temperature. [Model notes](docs/science-model.md#earth-comparisons-around-other-stars)
 
 ## Custom worlds
 

@@ -4,12 +4,13 @@ import { scienceModule } from './module.mjs';
 
 const m = await scienceModule();
 const earth = m.WORLDS.find(world => world.id === 'earth');
-const variants = ['earth-k-dwarf', 'earth-m-dwarf'].map(id => m.WORLDS.find(world => world.id === id));
+const ids = ['earth-k-dwarf', 'earth-m-dwarf', 'earth-f-dwarf', 'earth-a-dwarf'];
+const variants = ids.map(id => m.WORLDS.find(world => world.id === id));
 const options = { sunElevDeg: 45, sunAzDeg: 90, aerosolScale: 1, absorptionOn: true, eyeAdapted: false, exposure: 1 };
 const close = (actual, expected, tolerance = 1e-9) => assert.ok(Math.abs(actual - expected) < tolerance, `${actual} != ${expected}`);
 
 test('Earth dwarf variants follow Earth in the catalogue and retain its physical atmosphere', () => {
-  assert.deepEqual(m.WORLDS.slice(0, 3).map(world => world.id), ['earth', 'earth-k-dwarf', 'earth-m-dwarf']);
+  assert.deepEqual(m.WORLDS.slice(0, 1 + ids.length).map(world => world.id), ['earth', ...ids]);
   const earthSky = m.computeSky(earth, options);
   for (const world of variants) {
     assert.equal(world.group, 'Earth variants');
@@ -26,17 +27,24 @@ test('Earth dwarf variants follow Earth in the catalogue and retain its physical
   }
 });
 
-test('both dwarf orbits receive 0.8 Earth irradiance and lie within conservative habitable-zone bounds', () => {
+test('all comparison orbits receive 0.8 Earth irradiance and lie within conservative habitable-zone bounds', () => {
   for (const world of variants) {
     const s = m.computeSky(world, options), zone = world.habitableZone;
     close(s.fluxRel, .8);
     close(s.fluxWm2, 1088.8);
     assert.ok(world.distanceAU > zone.innerAU && world.distanceAU < zone.outerAU);
     assert.ok(s.fluxRel > zone.minFluxEarth && s.fluxRel < zone.maxFluxEarth);
-    assert.ok(zone.maxFluxEarth < 1, 'Earth-equivalent flux is above this cool star’s conservative inner limit');
+    if (world.star.tempK < earth.star.tempK) assert.ok(zone.maxFluxEarth < 1);
   }
   assert.ok(variants[0].distanceAU > .46 && variants[0].distanceAU < .47);
   assert.ok(variants[1].distanceAU > .14 && variants[1].distanceAU < .15);
+  const [, , f, a] = variants;
+  assert.ok(f.star.radiusSun > earth.star.radiusSun && a.star.radiusSun > f.star.radiusSun);
+  close(f.distanceAU, 2.121, .001);
+  close(a.distanceAU, 3.930, .001);
+  close(a.habitableZone.innerAU, 2.960, .001);
+  close(a.habitableZone.outerAU, 5.000, .001);
+  assert.ok(m.computeSky(a, options).starAngularDeg < m.computeSky(f, options).starAngularDeg);
   assert.ok(m.computeSky(variants[1], options).directLux < m.computeSky(variants[0], options).directLux);
 });
 
@@ -48,6 +56,10 @@ test('habitable-zone calculation reproduces published solar limits without chang
   close(zone.minFluxEarth, .356);
   close(zone.innerAU, 1 / Math.sqrt(1.107));
   close(zone.outerAU, 1 / Math.sqrt(.356));
+  const extended = m.conservativeHabitableZone(star, 'ramirez2018');
+  close(extended.maxFluxEarth, 1.1105);
+  close(extended.minFluxEarth, .3587);
+  assert.equal(m.conservativeHabitableZone({ tempK: 10001, radiusSun: 2 }, 'ramirez2018'), undefined);
   assert.equal(m.conservativeHabitableZone({ tempK: 2500, radiusSun: .1 }), undefined);
   assert.equal(m.conservativeHabitableZone({ tempK: 7500, radiusSun: 2 }), undefined);
 });
@@ -60,6 +72,7 @@ test('Earth comparison orbits are not overwritten by ephemerides or inherited by
     assert.equal(a.sunElevDeg, 12);
     assert.deepEqual(a.bodies, []);
     const draft = m.draftFromWorld(world);
+    assert.equal(draft.starChoiceId, world.id);
     draft.distanceAU = '10';
     const custom = m.resolveCustomWorld(draft).world;
     assert.ok(custom);
