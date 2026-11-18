@@ -4,7 +4,7 @@ Explore 27 planetary, lunar, exoplanet and fictional skies using spectral atmosp
 
 The current model integrates 48 visible wavelength bands using CIE colour matching functions. It combines spherical atmospheric refraction and single scattering, approximate hemispheric multiple scattering, finite stellar discs, reflected companion illumination, measured methane/ozone absorption data, a reflecting lower boundary, and one photometric display pipeline. Real-world weather and exoplanet atmospheres are generally assumed. “Adapted display” is an SDR viewing approximation, not a calibrated reproduction of human vision.
 
-Read the [model specification, audit changes, sources and remaining limitations](docs/science-model.md). The [original audit](docs/science-authenticity-audit.md) and its evidence describe the pre-fix implementation.
+For a side-by-side comparison of the same atmosphere under five stellar spectra, see the [stellar sky audit and rendered comparisons](docs/stellar-sky-audit/README.md). Read the [model specification, audit changes, sources and remaining limitations](docs/science-model.md). The [original audit](docs/science-authenticity-audit.md) and its evidence describe the pre-fix implementation.
 
 ## Run
 
@@ -22,6 +22,8 @@ Illuminated moons and parent planets also light the sky and ground. Their contri
 ## Earth around other stars
 
 Under **Earth**, choose a K5V, M3V, F5V or A5V star. All four comparisons keep Earth's atmosphere and surface and receive the same total stellar irradiance, 80% of Earth's. The F and A stars have larger radii than the Sun and sit farther away at 2.121 and 3.930 AU. The **Physics** readout gives the habitable-zone interval from the climate fit appropriate to each stellar temperature. [Model notes](docs/science-model.md#earth-comparisons-around-other-stars)
+
+To see the colour differences in the simulator, set **Stellar elevation** to 45° and look a quarter turn away from the star. In **Display**, turn off **Adapt white balance to star** to compare the skies against a common white. Choose **Fixed camera** to hold exposure constant as well.
 
 ## Custom worlds
 

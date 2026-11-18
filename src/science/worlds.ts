@@ -103,7 +103,7 @@ const PRESETS: Preset[] = [
   // ---------------- Solar System ----------------
   {
     id: 'earth', name: 'Earth', group: 'Solar System',
-    blurb: 'Nitrogen–oxygen air. Blue Rayleigh dome by day, ozone-warmed twilight.',
+    blurb: 'Sunlight scattered by nitrogen and oxygen gives clear Earth skies their daytime blue.',
     star: SOL, distanceAU: 1, pressureBar: 1.013, scaleHeightKm: 8.4, gravityMs2: 9.81, molarMass: 28.97,
     gases: { n2: 0.78, o2: 0.21, ar: 0.01 },
     aerosol: { name: 'Background sulfate + water', density: 0.06, g: 0.65, albedo: 0.95, angstrom: 1.3, tint: [1, 0.98, 0.95] },

@@ -22,5 +22,17 @@
     "url": "https://raw.githubusercontent.com/astronexus/HYG-Database/main/hyg/CURRENT/hygdata_v40.csv.gz",
     "retrieved": "2026-10-30",
     "sha256": "8e3ff9e67445e558a759b117910850cff1b1d4d492f45f715c2ee2db3d869bac"
+  },
+  {
+    "dataset": "PHOENIX BT-Settl AGSS2009 solar-metallicity flux grid",
+    "url": "https://ssb.stsci.edu/cdbs/grid/phoenix/phoenixm00/",
+    "retrieved": "2026-11-18",
+    "inputHashes": "stellar-sky-audit/stellar-reference.json"
+  },
+  {
+    "dataset": "ASTM G173-03 reference spectra, zipped CSV used for independent terrestrial comparison",
+    "url": "https://www.nlr.gov/media/docs/libraries/grid/zip/astmg173.zip?sfvrsn=1ef05e45_5",
+    "retrieved": "2026-11-18",
+    "sha256": "de6ed831cd7426d9a7147d5c0a48b1e67a483cb7f8ecd6d3ae846848154a5657"
   }
 ]
