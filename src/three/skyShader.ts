@@ -4,7 +4,7 @@ import type { SkyState } from '../science/atmosphere';
 import type { TransportResult } from '../science/transport';
 import type { AstronomyState } from '../science/astronomy';
 import { BANDS, BAND_RGB, reflectance } from '../science/spectrum';
-import { direction, DEG } from '../science/geometry';
+import { atmosphereGeometry, densities, direction, DEG } from '../science/geometry';
 import { companionShadow } from '../science/lighting';
 
 export const fullScreenVertex=`varying vec2 vUv; void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}`;
@@ -34,6 +34,7 @@ uniform float uRefractionSize,uRefractionGain,uRefractionGradient;
 uniform float uSkyWidth,uSkyHeight,uSunRadius,uRadius,uHeight,uTemperature;
 uniform vec3 uSun,uGroundDirect,uGroundDiffuse,uGroundColour;
 uniform vec4 uProfiles;
+uniform vec2 uGaussianPeak;
 uniform bool uTerrain,uRings,uFullAzimuth;
 uniform int uGroundLightCount;
 uniform vec4 uGroundLights[13];
@@ -144,11 +145,13 @@ vec4 foregroundColumn(vec3 ray,float distance){
  vec4 c=vec4(0.);
  for(int j=0;j<24;j++){
   float a=distance*sq(float(j)/24.),b=distance*sq(float(j+1)/24.);
-  vec3 p=vec3(0.,uRadius,0.)+rayPoint(ray,(a+b)*.5);
-  float h=max(0.,length(p)-uRadius);
+  vec3 p=rayPoint(ray,(a+b)*.5);
+  // Rationalise the radial height correction to retain metre-scale offsets.
+  float r=uRadius+p.y,xz2=dot(p.xz,p.xz);
+  float h=max(0.,p.y+xz2/(sqrt(r*r+xz2)+r));
   c+=(b-a)*vec4(exp(-h/uProfiles.x)/uProfiles.x,exp(-h/uProfiles.y)/uProfiles.y,
-    exp(-.5*sq((h-25.)/8.))/(8.*2.506628*.99911),
-    exp(-.5*sq((h-uProfiles.z)/uProfiles.w))/(uProfiles.w*2.506628));
+    uGaussianPeak.x*exp(-.5*sq((h-25.)/8.)),
+    uGaussianPeak.y*exp(-.5*sq((h-uProfiles.z)/uProfiles.w)));
  }return c;
 }
 vec3 lightCap(vec3 centre,float radius,int i,int n){
@@ -261,7 +264,7 @@ export function createSkyMaterial(){
   uSkyWidth:{value:1},uSkyHeight:{value:1},uSun:{value:new THREE.Vector3()},uSunRadius:{value:.00465},uRadius:{value:6371},uHeight:{value:.0017},uTemperature:{value:288},
   uGroundDirect:{value:new THREE.Vector3()},uGroundDiffuse:{value:new THREE.Vector3()},uGroundColour:{value:new THREE.Vector3()},uTerrain:{value:true},uFullAzimuth:{value:false},
   uGroundLightCount:{value:0},uGroundLights:{value:Array.from({length:13},()=>new THREE.Vector4())},uGroundLighting:{value:Array.from({length:13},()=>new THREE.Vector3())},
-  uProfiles:{value:new THREE.Vector4(8.4,1.2,3,1)},
+  uProfiles:{value:new THREE.Vector4(8.4,1.2,3,1)},uGaussianPeak:{value:new THREE.Vector2()},
   uRings:{value:false},uRingNormal:{value:new THREE.Vector3()},uRingOrigin:{value:new THREE.Vector3()},uBodyCount:{value:0},
   uBodies:{value:Array.from({length:12},()=>new THREE.Vector4())},uBodyShadow:{value:Array.from({length:12},()=>1)},
  };
@@ -282,7 +285,9 @@ export function updateSkyUniforms(u:SkyUniforms,w:WorldSpec,s:SkyState,a:Astrono
  u.uRefractionGain.value=s.refraction.gain;u.uRefractionGradient.value=s.refraction.gradient;
  u.uSun.value.fromArray(direction(s.sunAzDeg,s.sunElevDeg));u.uSunRadius.value=s.starAngularDeg*DEG/2;
  u.uRadius.value=w.radiusKm;u.uHeight.value=s.observerHeightKm??.0017;u.uTemperature.value=w.temperatureK;
- u.uProfiles.value.set(Math.max(.1,w.scaleHeightKm),w.aerosolHeightKm,w.clouds.centreKm,w.clouds.sigmaKm);
+ const profiles=atmosphereGeometry(w,s.refractionOn!==false);
+ u.uProfiles.value.set(profiles.gasH,profiles.aerosolH,profiles.cloudCentre,profiles.cloudSigma);
+ u.uGaussianPeak.value.set(densities(profiles,profiles.ozoneCentre)[2],densities(profiles,profiles.cloudCentre)[3]);
  const data=new Float32Array(BANDS*16);
  for(let i=0;i<BANDS;i++){
   data.set(s.optics.extinction[i],i*4);

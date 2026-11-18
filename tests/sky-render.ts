@@ -112,6 +112,14 @@ try{
  check('Catalogue point flux reaches the HDR star buffer',Math.abs(measuredStarFlux/referenceFlux-1)<.02,{referenceFlux,measuredStarFlux});
  stars.geometry.setAttribute('position',new THREE.Float32BufferAttribute([],3));
  stars.geometry.setAttribute('flux',new THREE.Float32BufferAttribute([],3));
+ // Look straight down from one cloud width above a half-Gaussian absorbing
+ // layer. Its surface-to-observer column is erf(1/√2) of the prescribed tau.
+ const fog={...moon,clouds:{...moon.clouds,opticalDepth:1,centreKm:0,sigmaKm:.1,singleScatteringAlbedo:0}};
+ const fogScene=setup(fog,{observerHeightKm:.1},false);
+ fogScene.t.groundDiffuseRGB.fill(1);fogScene.t.groundLights=[];fogScene.t.radiance.fill(0);
+ bindTransport(sky.uniforms,fogScene.t);point(90,-89.99,2);render();
+ const terrainTransmission=raw(160,100)[0],expectedFog=Math.exp(-.682689492);
+ check('A ground-level cloud attenuates terrain by its specified above-surface column',Math.abs(terrainTransmission-expectedFog)<.002,{terrainTransmission,expectedFog});
  setup(moon,{},false);point(90,45,2);render();const disc1=raw(160,100)[0];
  setup({...moon,distanceAU:2},{},false);point(90,45,2);render();const disc2=raw(160,100)[0];
  check('GPU resolved stellar radiance is independent of distance',Math.abs(disc1/disc2-1)<1e-5,{disc1,disc2});
