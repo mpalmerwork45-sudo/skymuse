@@ -1,5 +1,14 @@
 import * as THREE from 'three';
 import { fullScreenVertex } from './skyShader';
+import { luminance } from '../science/spectrum';
+
+/** The adaptation transform operates on cone responses, so preserve signed
+ * linear RGB for physical illuminants outside the display's colour triangle. */
+export function adaptingWhite(illuminance:ArrayLike<number>):THREE.Vector3 {
+  const y=luminance(illuminance);
+  if(y<=1e-6)return new THREE.Vector3(1,1,1);
+  return new THREE.Vector3(illuminance[0]/y,illuminance[1]/y,illuminance[2]/y);
+}
 export function createDisplay(){
   const uniforms={uScene:{value:null as THREE.Texture|null},uStars:{value:null as THREE.Texture|null},uGain:{value:1/20000},uAdaptation:{value:0},uWhite:{value:new THREE.Vector3(1,1,1)},uNight:{value:0}};
   const material=new THREE.ShaderMaterial({uniforms,vertexShader:fullScreenVertex,depthTest:false,depthWrite:false,
@@ -11,11 +20,20 @@ export function createDisplay(){
      vec3 adapted=rgb(lms(c)/max(lms(uWhite),vec3(.03)));c=mix(c,adapted,uAdaptation);
      // Mesopic desaturation is a display approximation, not a rod-cone simulation.
      float y=dot(c,vec3(.2126,.7152,.0722));c=mix(c,vec3(y),uNight*.85);
-     c=max(c*uGain,0.);
-     // Luminance-based shoulder preserves chromaticity until display gamut mapping.
-     y=dot(c,vec3(.2126,.7152,.0722));c/=1.+y;
-     float peak=max(c.r,max(c.g,c.b));if(peak>1.){float desat=(peak-1.)/max(peak-y/(1.+y),1e-5);c=mix(c,vec3(y/(1.+y)),clamp(desat,0.,1.));}
-     gl_FragColor=vec4(srgb(clamp(c,0.,1.)),1.);
+     c*=uGain;
+     float exposedY=dot(c,vec3(.2126,.7152,.0722));
+     if(exposedY<=0.){gl_FragColor=vec4(0.,0.,0.,1.);return;}
+     // Physical spectra can have negative linear sRGB components. Compute Y
+     // before gamut mapping. Move towards grey at that same tone-mapped Y
+     // until both the lower and upper display bounds are satisfied.
+     float displayY=exposedY/(1.+exposedY);
+     vec3 chroma=c/(1.+exposedY)-vec3(displayY);
+     float saturation=1.;
+     float darkest=min(chroma.r,min(chroma.g,chroma.b));
+     float brightest=max(chroma.r,max(chroma.g,chroma.b));
+     if(darkest<0.)saturation=min(saturation,displayY/(-darkest));
+     if(brightest>0.)saturation=min(saturation,(1.-displayY)/brightest);
+     gl_FragColor=vec4(srgb(clamp(vec3(displayY)+saturation*chroma,0.,1.)),1.);
     }`});
   return {uniforms,material};
 }

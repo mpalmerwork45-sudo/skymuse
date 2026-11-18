@@ -7,13 +7,14 @@ import type { TransportResult } from '../science/transport';
 import { luminance } from '../science/spectrum';
 import { DEG,direction } from '../science/geometry';
 import { bindTransport,createSkyMaterial,updateSkyUniforms } from './skyShader';
-import { createDisplay } from './display';
+import { adaptingWhite, createDisplay } from './display';
 import { createStars,loadStars,starAttributes } from './stars';
 
 export interface ViewState {yawDeg:number;pitchDeg:number;fisheye:boolean;fov:number;terrain:boolean;}
 export interface SkyViewProps {
  world:WorldSpec;sky:SkyState;astronomy:AstronomyState;observation:Observation;
  transport:TransportResult|null;view:ViewState;onViewChange:(view:ViewState)=>void;
+ adaptColours?:boolean;
 }
 export default function SkyView(props:SkyViewProps){
  const mountRef=useRef<HTMLDivElement>(null),live=useRef(props);live.current=props;
@@ -64,10 +65,9 @@ export default function SkyView(props:SkyViewProps){
     if(first){gain=wanted;first=false;}else gain=Math.exp(Math.log(gain)+(Math.log(wanted)-Math.log(gain))*(1-Math.exp(-dt/tau)));
     if(!p.sky.eyeAdapted)gain=wanted;
     const illum=p.transport.diffuseRGB.map((v,i)=>v+p.sky.directHorizontalRGB[i]);
-    const y=Math.max(1e-8,luminance(illum));
-    const targetWhite=y>1e-6?new THREE.Vector3(...illum.map(v=>Math.max(.05,v/y))):new THREE.Vector3(1,1,1);
+    const targetWhite=adaptingWhite(illum);
     white.lerp(targetWhite,1-Math.exp(-dt/3));display.uniforms.uWhite.value.copy(white);
-    display.uniforms.uAdaptation.value=p.sky.eyeAdapted?.75:0;
+    display.uniforms.uAdaptation.value=p.sky.eyeAdapted&&p.adaptColours!==false?.75:0;
     display.uniforms.uNight.value=p.sky.eyeAdapted?Math.max(0,Math.min(1,(Math.log10(3)-Math.log10(Math.max(.0001,field)))/4)):0;
    }
    display.uniforms.uGain.value=gain*p.sky.exposure;

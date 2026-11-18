@@ -4,9 +4,9 @@ import {computeSky,displayGain,type SkyOptions} from '../src/science/atmosphere'
 import {computeTransport,type TransportResult} from '../src/science/transport';
 import {observe,type AstronomyState} from '../src/science/astronomy';
 import {direction,DEG,stellarDisc,observerRayLookup,sphereHit,scale,sub,unit,dot,length} from '../src/science/geometry';
-import {luminance,rgb} from '../src/science/spectrum';
+import {luminance,rgb,BAND_RGB,NM} from '../src/science/spectrum';
 import {createSkyMaterial,bindTransport,updateSkyUniforms} from '../src/three/skyShader';
-import {createDisplay} from '../src/three/display';
+import {adaptingWhite,createDisplay} from '../src/three/display';
 import {createStars,starAttributes} from '../src/three/stars';
 import {companionIlluminants} from '../src/science/lighting';
 
@@ -32,7 +32,7 @@ function setup(w:WorldSpec,o:Partial<SkyOptions>={},bodies=true){
  if(!bodies)a.bodies=[];
  current=computeTransport(w,s,quality);updateSkyUniforms(sky.uniforms,w,s,a);bindTransport(sky.uniforms,current);sky.uniforms.uTerrain.value=false;
  const mean=.5*(current.meanLuminance+Math.max(0,luminance(current.groundRGB)));display.uniforms.uGain.value=displayGain(mean,s.eyeAdapted)*s.exposure;
- display.uniforms.uAdaptation.value=s.eyeAdapted?.75:0;const e=current.diffuseRGB.map((v,i)=>v+s.directHorizontalRGB[i]),y=Math.max(1e-8,luminance(e));display.uniforms.uWhite.value.set(...e.map(v=>Math.max(.05,v/y)) as [number,number,number]);
+ display.uniforms.uAdaptation.value=s.eyeAdapted?.75:0;const e=current.diffuseRGB.map((v,i)=>v+s.directHorizontalRGB[i]);display.uniforms.uWhite.value.copy(adaptingWhite(e));
  return {s,a,t:current};
 }
 function render(){renderer.setClearColor(0,0);renderer.setRenderTarget(target);renderer.clear();renderer.render(scene,camera);renderer.setRenderTarget(starTarget);renderer.clear();renderer.render(starScene,camera);renderer.setRenderTarget(null);renderer.render(post,camera);}
@@ -40,6 +40,60 @@ function raw(x:number,y:number){const out=new Float32Array(4);renderer.readRende
 function fullRaw(){const p=new Float32Array(target.width*target.height*4);renderer.readRenderTargetPixels(target,0,0,target.width,target.height,p);return p;}
 function gallery(name:string){const f=document.createElement('figure'),img=document.createElement('img'),c=document.createElement('figcaption');img.src=renderer.domElement.toDataURL();c.textContent=name;f.append(img,c);document.querySelector('#gallery')!.append(f);}
 function resize(w:number,h:number){target.setSize(w,h);starTarget.setSize(w,h);renderer.setSize(w,h);}
+function displayPixel(){
+ const gl=renderer.getContext(),pixel=new Uint8Array(4);
+ gl.readPixels(target.width>>1,target.height>>1,1,1,gl.RGBA,gl.UNSIGNED_BYTE,pixel);
+ return Array.from(pixel.slice(0,3));
+}
+// A 480 nm spectral line is physically real but lies outside the sRGB triangle.
+// At exposed luminance 0.16 the specified shoulder should return Y = 0.16/1.16.
+function checkDisplayGamut(){
+ const band=BAND_RGB[NM.indexOf(480)],gain=.16/luminance(band);
+ const blank=new THREE.DataTexture(new Float32Array(4),1,1,THREE.RGBAFormat,THREE.FloatType);
+ const line=new THREE.DataTexture(new Float32Array([...band,0]),1,1,THREE.RGBAFormat,THREE.FloatType);
+ blank.needsUpdate=true;line.needsUpdate=true;
+ display.uniforms.uStars.value=blank;display.uniforms.uScene.value=line;display.uniforms.uGain.value=gain;
+ display.uniforms.uAdaptation.value=0;display.uniforms.uNight.value=0;
+ renderer.setRenderTarget(null);renderer.render(post,camera);
+ const bytes=displayPixel(),y=luminance(bytes.map(b=>{const c=b/255;return c<=.04045?c/12.92:((c+.055)/1.055)**2.4;}));
+ const expected=.16/1.16;
+ check('Display gamut mapping preserves the target luminance of saturated spectral colours',Math.abs(y-expected)<.003,{bytes,y,expected});
+ display.uniforms.uStars.value=starTarget.texture;display.uniforms.uScene.value=target.texture;
+ blank.dispose();line.dispose();
+}
+function compareIlluminants(){
+ const grid=document.getElementById('comparison')!;
+ const rows:Record<string,{title:string;cells:HTMLTableRowElement}>={};
+ const table=document.createElement('table');grid.append(table);
+ const header=table.insertRow();header.insertCell().textContent='Earth atmosphere';
+ for(const [id,title] of [['fixed','Fixed camera'],['reference','Auto exposure, D65 white'],['adapted','Adapted display']]){
+  const cells=table.insertRow();cells.insertCell().textContent=title;rows[id]={title,cells};
+ }
+ const measurements=[];
+ for(const id of ['earth-m-dwarf','earth-k-dwarf','earth','earth-f-dwarf','earth-a-dwarf']){
+  const preset=world(id);
+  const w=id==='earth'?{...preset,distanceAU:1/Math.sqrt(.8)}:preset;
+  header.insertCell().textContent=w.star.type;
+  const {s,t}=setup(w,{sunAzDeg:90,sunElevDeg:45},false);
+  // The central ray points away from the star. Include the horizon below it
+  // so each tile shows the same sky gradient and a patch of illuminated ground.
+  point(180,20,65);render();
+  const [r,g,b]=raw(target.width>>1,target.height>>1);
+  const automaticGain=display.uniforms.uGain.value;
+  const pixels:Record<string,number[]>={};
+  for(const mode of ['fixed','reference','adapted']){
+   display.uniforms.uGain.value=mode==='fixed'?displayGain(0,false):automaticGain;
+   display.uniforms.uAdaptation.value=mode==='adapted'?.75:0;
+   renderer.setRenderTarget(null);renderer.render(post,camera);
+   pixels[mode]=displayPixel();
+   const img=document.createElement('img');img.alt=`${w.star.type}, ${rows[mode].title}`;img.src=renderer.domElement.toDataURL();rows[mode].cells.insertCell().append(img);
+  }
+  measurements.push({type:w.star.type,temperatureK:w.star.tempK,fluxWm2:s.fluxWm2,lux:t.lux,radianceRGB:[r,g,b],luminance:luminance([r,g,b]),blueRed:b/r,pixels});
+ }
+ const cool=measurements[0],hot=measurements[4];
+ check('Matched terrestrial skies respond to stellar classes in raw radiance and the displayed image',
+  measurements.every(x=>Math.abs(x.fluxWm2-1088.8)<.01)&&hot.blueRed>cool.blueRed*1.5&&hot.pixels.fixed[2]>cool.pixels.fixed[2]+10,measurements);
+}
 try{
  const moon=world('moon');
  // Exercise the actual additive star pass. The earlier CPU-only test could
@@ -145,6 +199,8 @@ try{
  point(20,35,10);render();const nearMoon=raw(256,256)[0];point(160,35,10);render();const oppositeMoon=raw(256,256)[0];
  check('Secondary sky glow follows the companion azimuth in the GPU renderer',nearMoon>oppositeMoon*1.2&&oppositeMoon>0,{nearMoon,oppositeMoon});
  gallery('Earth night sky near the reference moon · scattering from reflected light');
+ checkDisplayGamut();
+ resize(280,180);compareIlluminants();
  check('Shaders compile and link',errors.length===0,errors);check('No WebGL errors',renderer.getContext().getError()===0);
 }catch(e){errors.push(String(e));check('Harness completed',false,String(e));}
 finally{

@@ -5,9 +5,16 @@
 body { margin: 24px; background: #171717; color: #eee; font: 15px system-ui; }
 #gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
 figure { margin: 0; } img { width: 100%; } figcaption { padding: 8px 0; }
+#comparison { max-width: 1200px; padding: 14px; background: #171717; }
+#comparison h2 { font-size: 20px; margin: 0; }
+#comparison p { font-size: 14px; margin: .5em 0 1em; }
+#comparison table { width: 100%; table-layout: fixed; border-spacing: 5px; font-size: 13px; }
+#comparison td:first-child { width: 115px; }
+#comparison tr:first-child { text-align: center; font-weight: bold; }
 </style>
 <h1>Physical rendering regression checks</h1>
 <p>Production shaders, floating-point radiance measurements, projection and atmospheric compositing checks. Images are model outputs, not observational validation.</p>
+<section id="comparison"><h2>Earth skies across the main sequence</h2><p>Each star delivers 80% of Earth's bolometric irradiance at a geometric elevation of 45°. The camera faces 90° from its azimuth and 20° above the horizon. All tiles use the same clear atmosphere and surface.</p></section>
 <pre id="results">Running…</pre>
 <div id="gallery"></div>
 <script type="module" src="./sky-render.ts"></script>
