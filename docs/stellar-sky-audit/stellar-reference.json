@@ -1,0 +1,120 @@
+{
+  "grid": "https://ssb.stsci.edu/cdbs/grid/phoenix/phoenixm00/",
+  "cie": "https://files.cie.co.at/Publications-datasets/CIE_xyz_1931_2deg.csv",
+  "models": {
+    "2566": {
+      "bracketK": [
+        2500,
+        2600
+      ],
+      "logGravityCGS": 5.0,
+      "referenceXYZPerBolometricWatt": [
+        1.37147259,
+        1.32087015,
+        0.57192171
+      ]
+    },
+    "3042": {
+      "bracketK": [
+        3000,
+        3100
+      ],
+      "logGravityCGS": 5.0,
+      "referenceXYZPerBolometricWatt": [
+        9.00603383,
+        8.68087898,
+        4.09004647
+      ]
+    },
+    "3430": {
+      "bracketK": [
+        3400,
+        3500
+      ],
+      "logGravityCGS": 5.0,
+      "referenceXYZPerBolometricWatt": [
+        22.61536145,
+        21.64105959,
+        11.12924444
+      ]
+    },
+    "3788": {
+      "bracketK": [
+        3700,
+        3800
+      ],
+      "logGravityCGS": 5.0,
+      "referenceXYZPerBolometricWatt": [
+        37.28563005,
+        35.29233526,
+        19.40206673
+      ]
+    },
+    "4440": {
+      "bracketK": [
+        4400,
+        4500
+      ],
+      "logGravityCGS": 4.5,
+      "referenceXYZPerBolometricWatt": [
+        63.15096165,
+        60.28346624,
+        42.20700694
+      ]
+    },
+    "6300": {
+      "bracketK": [
+        6300,
+        6300
+      ],
+      "logGravityCGS": 4.0,
+      "referenceXYZPerBolometricWatt": [
+        99.92521632,
+        103.17646871,
+        118.20479608
+      ]
+    },
+    "6550": {
+      "bracketK": [
+        6500,
+        6600
+      ],
+      "logGravityCGS": 4.5,
+      "referenceXYZPerBolometricWatt": [
+        100.90530741,
+        103.83632217,
+        124.65025016
+      ]
+    },
+    "8100": {
+      "bracketK": [
+        8000,
+        8200
+      ],
+      "logGravityCGS": 4.0,
+      "referenceXYZPerBolometricWatt": [
+        103.51672442,
+        106.51301711,
+        160.12962833
+      ]
+    }
+  },
+  "sha256": {
+    "CIE_xyz_1931_2deg.csv": "fa663e3535a7e0763a745993a1f0a192eb0275ac46ad2d1befd7626841e713c1",
+    "phoenixm00_2500.fits": "b01aa88bc8f72016e72ff7943e05f64dceea84ab14a47b19c8e8ca89ed25ce05",
+    "phoenixm00_2600.fits": "15841606a5191e01375dcef8637f1d6f4c1870bcbdbfb6f50b536276be65ea0d",
+    "phoenixm00_3000.fits": "fd9ea3d54ce7ef5fa6e641af6b111254cd69abe8b508e101ab0d46d40140c76a",
+    "phoenixm00_3100.fits": "0bafb5795ca907bbc18116f6035b190f9253c3c32812d96e6608a3b040bbeb4e",
+    "phoenixm00_3400.fits": "caa2701d1edab228b5893c803889bb5a486d1197ccc8a00321f8a10ee7ee06d3",
+    "phoenixm00_3500.fits": "eb3355d78a00263c567b273727ed90e2a198e4f022bb7f733763177fae862600",
+    "phoenixm00_3700.fits": "69270b1435e3ed04ad68223a7d1c2b9e58bfdb98211e1c9a8d8e1ec90647a8c7",
+    "phoenixm00_3800.fits": "4cb17984ef462dfecaad793d0771a42752cde1198cb26355042b9c27922057a6",
+    "phoenixm00_4400.fits": "e8f6e3be0eb37bb7d748a882381139990758eef01d823c28d0ff800ab324f0e3",
+    "phoenixm00_4500.fits": "729fda742382b1d0ff58da63c55daab7f02423e41f8718df7973fb951fc05b9c",
+    "phoenixm00_6300.fits": "05570ac5094f8137d0ca39029a2fcf3420e777f75637d527805e69e017cf2b2d",
+    "phoenixm00_6500.fits": "9095fd33f9501e0af2e26c01271c38bd5bf8431a12aecb53f71b3aada6d600a0",
+    "phoenixm00_6600.fits": "b05f8a9fa70fcd7b81c7128e7400cf25cdcfd46219322a270e7769b04bbf5c8e",
+    "phoenixm00_8000.fits": "edafc51f0f5305a9ba58629ffb7a1cdf4cbcf8e8c2dc01cc9606c5c0da6bcaef",
+    "phoenixm00_8200.fits": "9154c4bf154cd1f8dd3d599e93f4fd27b6d3fffe555bb1c8359f9391c3533af9"
+  }
+}

@@ -1,4 +1,5 @@
 import { SPECTRAL_DATA } from './data/spectral';
+import phoenixRows from './data/phoenix.json';
 import type { StarSpec } from './worlds';
 
 export type Vec3 = [number, number, number];
@@ -23,9 +24,16 @@ export function stellarLuminosity(star: Pick<StarSpec, 'tempK' | 'radiusSun'>): 
   return star.radiusSun ** 2 * (star.tempK / SOLAR_T) ** 4;
 }
 
-/** Normal irradiance. Solar spectrum is measured; other stars are blackbodies. */
+const phoenix: Readonly<Record<number, readonly number[]>> = phoenixRows;
+
+/** Top-of-atmosphere normal spectral irradiance at the chosen orbital distance. */
 export function stellarSpectrum(star: StarSpec, distanceAU: number): Float64Array {
   const flux = 1361 * stellarLuminosity(star) / distanceAU ** 2;
+  if (star.spectrum === 'phoenix') {
+    const fractionsPerNm = phoenix[star.tempK];
+    if (!fractionsPerNm) throw new RangeError(`No PHOENIX template for ${star.tempK} K`);
+    return Float64Array.from(fractionsPerNm, fraction => flux * fraction);
+  }
   const solar = star.spectrum === 'solar' || (star.spectrum === undefined && star.name === 'Sol');
   return Float64Array.from(NM, (nm, i) => solar
     ? SOLAR[i] * flux / 1361
