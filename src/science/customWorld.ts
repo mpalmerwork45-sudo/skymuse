@@ -36,9 +36,8 @@ export const STAR_CHOICES = WORLDS.filter(world => {
   fictional: world.group === 'Sci-Fi' || world.group === 'BattleTech',
   star: {
     ...world.star,
-    spectrum: world.star.name === 'Sol' ? 'solar' : 'blackbody',
     catalogueHost: HOSTS[world.id],
-  } as StarSpec,
+  },
 }));
 
 export interface CustomWorldDraft {

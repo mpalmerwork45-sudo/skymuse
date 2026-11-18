@@ -22,8 +22,8 @@ export type WorldGroup =
   | 'BattleTech';
 
 export interface StarSpec {
-  /** Explicit spectrum selection for user-defined stars, including stars named Sol. */
-  spectrum?: 'solar' | 'blackbody';
+  /** Irradiance model for the stellar photosphere. */
+  spectrum?: 'solar' | 'phoenix' | 'blackbody';
   /** Known stellar host for the background catalogue's observer location. */
   catalogueHost?: string;
   /** Display name, e.g. "Sol", "Proxima Centauri" */
@@ -97,7 +97,7 @@ interface Preset {
   rings?: boolean;
 }
 
-const SOL: Omit<StarSpec, 'luminosity'> = { name: 'Sol', type: 'G2V', tempK: 5772, radiusSun: 1 };
+const SOL: Omit<StarSpec, 'luminosity'> = { name: 'Sol', type: 'G2V', tempK: 5772, radiusSun: 1, spectrum: 'solar' };
 
 const PRESETS: Preset[] = [
   // ---------------- Solar System ----------------
@@ -207,7 +207,7 @@ const PRESETS: Preset[] = [
   {
     id: 'proxima-b', name: 'Proxima Centauri b', group: 'Exoplanets',
     blurb: 'An assumed terrestrial atmosphere. Surface pressure, composition and rotation are unmeasured.',
-    star: { name: 'Proxima Centauri', type: 'M5.5V', tempK: 3042, radiusSun: 0.154 },
+    star: { name: 'Proxima Centauri', type: 'M5.5V', tempK: 3042, radiusSun: 0.154, spectrum: 'phoenix' },
     distanceAU: 0.0485, pressureBar: 1, scaleHeightKm: 8, gravityMs2: 10.9, molarMass: 29,
     gases: { n2: 0.8, o2: 0.15, co2: 0.05 },
     aerosol: { name: 'Thin water haze', density: 0.08, g: 0.65, albedo: 0.95, angstrom: 1.3, tint: [1, 0.9, 0.8] },
@@ -216,7 +216,7 @@ const PRESETS: Preset[] = [
   {
     id: 'trappist-1e', name: 'TRAPPIST-1e', group: 'Exoplanets',
     blurb: 'An assumed nitrogen–CO₂ atmosphere beneath a cool dwarf. Whether this planet has an atmosphere or oceans is unknown.',
-    star: { name: 'TRAPPIST-1', type: 'M8V', tempK: 2566, radiusSun: 0.119 },
+    star: { name: 'TRAPPIST-1', type: 'M8V', tempK: 2566, radiusSun: 0.119, spectrum: 'phoenix' },
     distanceAU: 0.028, pressureBar: 1, scaleHeightKm: 8.2, gravityMs2: 9.0, molarMass: 29,
     gases: { n2: 0.85, co2: 0.1, h2o: 0.05 },
     aerosol: { name: 'Humid haze', density: 0.12, g: 0.65, albedo: 0.94, angstrom: 1.2, tint: [1, 0.85, 0.72] },
@@ -225,7 +225,7 @@ const PRESETS: Preset[] = [
   {
     id: 'kepler-186f', name: 'Kepler-186f', group: 'Exoplanets',
     blurb: 'An assumed terrestrial atmosphere illuminated by a cool star; surface conditions are unknown.',
-    star: { name: 'Kepler-186', type: 'M1V', tempK: 3788, radiusSun: 0.52 },
+    star: { name: 'Kepler-186', type: 'M1V', tempK: 3788, radiusSun: 0.52, spectrum: 'phoenix' },
     distanceAU: 0.432, pressureBar: 1.2, scaleHeightKm: 8.6, gravityMs2: 9.2, molarMass: 28.5,
     gases: { n2: 0.8, o2: 0.18, co2: 0.02 },
     aerosol: { name: 'Light continental haze', density: 0.1, g: 0.65, albedo: 0.95, angstrom: 1.3, tint: [1, 0.95, 0.85] },
@@ -234,7 +234,7 @@ const PRESETS: Preset[] = [
   {
     id: 'wasp-12b', name: 'WASP-12b (hot Jupiter)', group: 'Exoplanets',
     blurb: 'A 37° stellar disc above an assumed hot, absorbing atmosphere. Thermal glow uses an illustrative 2500 K profile.',
-    star: { name: 'WASP-12', type: 'G0V', tempK: 6300, radiusSun: 1.57 },
+    star: { name: 'WASP-12', type: 'G0V', tempK: 6300, radiusSun: 1.57, spectrum: 'phoenix' },
     distanceAU: 0.0229, pressureBar: 1, scaleHeightKm: 300, gravityMs2: 11.3, molarMass: 2.3,
     gases: { h2: 0.9, he: 0.1 },
     aerosol: { name: 'Absorbing silicate haze', density: 0.5, g: 0.7, albedo: 0.6, angstrom: 0.7, tint: [0.9, 0.85, 0.8] },
@@ -359,7 +359,7 @@ const CATALOGUE: WorldSpec[] = PRESETS.map(p => {
   const cloud = CLOUDS[p.id] ?? [0,3,1,.999];
   const luminosity = p.star.radiusSun ** 2 * (p.star.tempK / 5772) ** 4;
   return {
-    ...base, star: {...p.star, luminosity}, radiusKm: RADII[p.id] ?? 6371,
+    ...base, star: {...p.star, spectrum: p.star.spectrum ?? 'blackbody', luminosity}, radiusKm: RADII[p.id] ?? 6371,
     ozoneDU: p.ozoneDU,
     aerosolHeightKm: p.id === 'earth' ? 1.2 : p.id === 'pluto' ? 50 : p.id === 'titan' ? 40 : Math.max(1,p.scaleHeightKm*.55),
     clouds: {opticalDepth:cloud[0], centreKm:cloud[1], sigmaKm:cloud[2], singleScatteringAlbedo:cloud[3], g:.85},
@@ -371,7 +371,7 @@ const CATALOGUE: WorldSpec[] = PRESETS.map(p => {
         ? [{label:'NASA Exoplanet Archive',url:'https://exoplanetarchive.ipac.caltech.edu/'}]
         : [{label:'JPL physical parameters',url:'https://ssd.jpl.nasa.gov/planets/phys_par.html'},
            {label:'JPL satellite parameters',url:'https://ssd.jpl.nasa.gov/sats/phys_par/'}],
-      assumptions: (fictional ? 'All planetary and stellar parameters are authored assumptions. ' : exoplanet ? 'Atmosphere, weather, rotation, observer frame and surface are assumed. Stellar spectra are blackbodies. ' : '') +
+      assumptions: (fictional ? 'All planetary and stellar parameters are authored assumptions. ' : exoplanet ? 'Atmosphere, weather, rotation, observer frame and surface are assumed. A PHOENIX stellar atmosphere represents the host spectrum. ' : '') +
         'Spherical exponential gas and haze profiles; prescribed cloud layer. Aerosol optical properties and surface reflectance are approximate. See model notes for accuracy limits.',
     },
   };
@@ -388,7 +388,7 @@ const EARTH_DWARFS: WorldSpec[] = [
   { id: 'earth-a-dwarf', name: 'Earth with A Dwarf', star: { name: 'Representative A dwarf', type: 'A5V', tempK: 8100, radiusSun: 1.785 } },
 ].map(preset => {
   const luminosity = stellarLuminosity(preset.star);
-  const star: StarSpec = { ...preset.star, spectrum: 'blackbody', luminosity };
+  const star: StarSpec = { ...preset.star, spectrum: 'phoenix', luminosity };
   // Each comparison receives the same total stellar flux. The A star lies
   // outside the Kopparapu fit, so use the classical HZ fit calibrated through 10,000 K.
   const useExtendedFit = star.tempK > 7200;
@@ -408,7 +408,7 @@ const EARTH_DWARFS: WorldSpec[] = [
           ? { label: 'Ramirez classical habitable zones, Table 1', url: 'https://doi.org/10.3390/geosciences8080280' }
           : { label: 'Kopparapu et al. habitable zones', url: HZ_SOURCE },
       ],
-      assumptions: 'An Earth comparison scenario with unchanged radius, gravity, pressure, composition, ozone, haze, surface and prescribed temperature. The representative dwarf uses a blackbody spectrum. Distance is chosen for 0.8 Earth bolometric irradiance, within the conservative one-Earth-mass runaway/maximum-greenhouse limits. Climate, photochemistry, stellar activity and tidal locking are not solved; habitable-zone placement does not establish actual habitability. Observer rotation and sky frame are assumed, with no Solar System ephemeris or inherited Moon.',
+      assumptions: 'Earth supplies the radius, gravity, pressure, composition, ozone, haze, surface and prescribed temperature. A PHOENIX stellar atmosphere represents the dwarf spectrum. The orbit receives 80% of Earth’s bolometric irradiance and lies inside the fitted conservative habitable zone. Climate, photochemistry, stellar activity and tidal locking could affect an actual planet. The observer uses an assumed rotation and sky frame.',
     },
   };
 });

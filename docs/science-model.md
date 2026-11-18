@@ -84,7 +84,7 @@ Four presets beneath Earth keep its radius, gravity, gas composition, pressure, 
 | F5V | 6550 | 1.473 | 2.121 |
 | A5V | 8100 | 1.785 | 3.930 |
 
-The temperatures and radii represent average main-sequence stars. The renderer derives their luminosities using the Stefan–Boltzmann law. [Pecaut & Mamajek dwarf sequence](https://raw.githubusercontent.com/emamajek/SpectralType/master/EEM_dwarf_UBVIJHK_colors_Teff.txt)
+The temperatures and radii represent average main-sequence stars. The renderer derives their luminosities using the Stefan–Boltzmann law and uses PHOENIX stellar atmosphere spectra for the four hosts. Selecting one of these hosts in the custom editor keeps its spectrum. [Pecaut & Mamajek dwarf sequence](https://raw.githubusercontent.com/emamajek/SpectralType/master/EEM_dwarf_UBVIJHK_colors_Teff.txt)
 
 For K, M and F, the habitable-zone boundaries use the one-Earth-mass runaway-greenhouse and maximum-greenhouse fits calibrated for 2600–7200 K. For A, the 8100 K photosphere requires the extended classical fit. That model uses the Leconte inner edge and the CO₂ maximum-greenhouse outer edge and covers 2600–10,000 K. Both models give effective flux limits as a fourth-order polynomial in `T_eff − 5780 K`. The distance for each edge is `sqrt((L/Lsun)/S_eff)` AU. [Kopparapu et al. (2014), Table 1](https://arxiv.org/abs/1404.5292), [Ramirez & Kaltenegger (2018), Table 2](https://arxiv.org/abs/1805.02801), [Ramirez (2018), corrected Table 1](https://doi.org/10.3390/geosciences8080280)
 

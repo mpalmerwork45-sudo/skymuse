@@ -18,6 +18,11 @@ test('every preset is a valid starting point, including airless and giant worlds
     const custom = build(m.draftFromWorld(world));
     assert.equal(custom.id, 'custom');
     assert.equal(custom.provenance.status, 'Custom scenario');
+    const spectrum = world.group === 'Earth variants' || world.group === 'Exoplanets' ? 'phoenix'
+      : world.star.name === 'Sol' ? 'solar' : 'blackbody';
+    assert.equal(world.star.spectrum, spectrum, world.id);
+    assert.equal(custom.star.spectrum, spectrum, world.id);
+    assert.deepEqual(m.stellarSpectrum(custom.star, custom.distanceAU), m.stellarSpectrum(world.star, world.distanceAU));
     assert.ok(Number.isFinite(custom.scaleHeightKm) && custom.scaleHeightKm > 0);
   }
 });
