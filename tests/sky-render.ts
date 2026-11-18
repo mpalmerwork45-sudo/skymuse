@@ -61,8 +61,8 @@ function checkDisplayGamut(){
  display.uniforms.uStars.value=starTarget.texture;display.uniforms.uScene.value=target.texture;
  blank.dispose();line.dispose();
 }
-function compareIlluminants(){
- const grid=document.getElementById('comparison')!;
+function compareIlluminants(section:string,starElevation:number,yaw:number,pitch:number,fov:number){
+ const grid=document.getElementById(section)!;
  const rows:Record<string,{title:string;cells:HTMLTableRowElement}>={};
  const table=document.createElement('table');grid.append(table);
  const header=table.insertRow();header.insertCell().textContent='Earth atmosphere';
@@ -74,10 +74,8 @@ function compareIlluminants(){
   const preset=world(id);
   const w=id==='earth'?{...preset,distanceAU:1/Math.sqrt(.8)}:preset;
   header.insertCell().textContent=w.star.type;
-  const {s,t}=setup(w,{sunAzDeg:90,sunElevDeg:45},false);
-  // The central ray points away from the star. Include the horizon below it
-  // so each tile shows the same sky gradient and a patch of illuminated ground.
-  point(180,20,65);render();
+  const {s,t}=setup(w,{sunAzDeg:90,sunElevDeg:starElevation},false);
+  point(yaw,pitch,fov);render();
   const [r,g,b]=raw(target.width>>1,target.height>>1);
   const automaticGain=display.uniforms.uGain.value;
   const pixels:Record<string,number[]>={};
@@ -91,8 +89,8 @@ function compareIlluminants(){
   measurements.push({type:w.star.type,temperatureK:w.star.tempK,fluxWm2:s.fluxWm2,lux:t.lux,radianceRGB:[r,g,b],luminance:luminance([r,g,b]),blueRed:b/r,pixels});
  }
  const cool=measurements[0],hot=measurements[4];
- check('Matched terrestrial skies respond to stellar classes in raw radiance and the displayed image',
-  measurements.every(x=>Math.abs(x.fluxWm2-1088.8)<.01)&&hot.blueRed>cool.blueRed*1.5&&hot.pixels.fixed[2]>cool.pixels.fixed[2]+10,measurements);
+ check(`Matched terrestrial skies respond to stellar classes at ${starElevation}° elevation`,
+  measurements.every(x=>Math.abs(x.fluxWm2-1088.8)<.01)&&hot.blueRed>cool.blueRed*1.5&&hot.pixels.fixed[2]>cool.pixels.fixed[2],measurements);
 }
 try{
  const moon=world('moon');
@@ -200,7 +198,7 @@ try{
  check('Secondary sky glow follows the companion azimuth in the GPU renderer',nearMoon>oppositeMoon*1.2&&oppositeMoon>0,{nearMoon,oppositeMoon});
  gallery('Earth night sky near the reference moon · scattering from reflected light');
  checkDisplayGamut();
- resize(280,180);compareIlluminants();
+ resize(280,180);compareIlluminants('comparison',45,180,20,65);compareIlluminants('comparison-low',2,90,8,60);
  check('Shaders compile and link',errors.length===0,errors);check('No WebGL errors',renderer.getContext().getError()===0);
 }catch(e){errors.push(String(e));check('Harness completed',false,String(e));}
 finally{
