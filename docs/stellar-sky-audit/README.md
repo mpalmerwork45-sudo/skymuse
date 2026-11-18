@@ -36,6 +36,14 @@ The stellar inputs are representative model photospheres. The stellar grid and r
 
 ## Terrestrial reference checks
 
+Kider and colleagues measured directional sky spectra at Cornell University. For each scan, the simulator used the stock Earth atmosphere and the solar position and distance at the recorded time. The comparison covers the zenith and the average of 24 directions at 33.75° elevation. The modeled zenith was less blue than the observations in all three scans. In the lowest-Sun case, measured CIE (x, y) was (0.2431, 0.2537) and the model gave (0.2560, 0.2672). The ring average agreed most closely at a solar elevation of 41° and was 25% too bright under the highest Sun. The preset uses sea-level pressure and prescribed aerosol and surface properties. The field scan takes about three minutes. [Field comparison and reproduction instructions](measured-zenith.md) · [Original measurements](https://github.com/spectralskylight/sky-measurements-2014)
+
+| Solar elevation | Zenith, measured / modeled (cd/m²) | Difference | Ring mean, measured / modeled (cd/m²) | Difference |
+|---|---:|---:|---:|---:|
+| 9.14° | 659 / 765 | +16.1% | 1476 / 1771 | +20.0% |
+| 41.06° | 2081 / 2068 | −0.6% | 4132 / 4128 | −0.1% |
+| 65.15° | 3842 / 4168 | +8.5% | 3059 / 3836 | +25.4% |
+
 For the ASTM G173-03 air-mass-1.5 case, the Sun was 41.81° high, surface pressure was 1.01325 bar, ozone was 340 DU, and aerosol optical depth at 500 nm was 0.084. Weighting the published SMARTS direct-plus-circumsolar spectrum by the CIE photopic response gives 97,142 lx normal to the beam. Skymuse gives 97,886 lx for the direct beam, **0.77% higher**. The ASTM reference includes light close to the solar disc and additional absorbers and atmospheric layers. This tests one daylight condition. [ASTM G173-03 tables and conditions](https://www.nlr.gov/grid/solar-resource/spectra-am1.5) · [Photometric regression](../../tests/stellar-spectrum.test.mjs)
 
 | Band centre | Reference transmission across 10 nm | Skymuse transmission |
